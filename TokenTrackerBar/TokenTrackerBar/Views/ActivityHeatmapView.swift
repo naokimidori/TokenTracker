@@ -58,16 +58,22 @@ struct ActivityHeatmapView: View {
                     }
                 }
 
-                // Legend
+                // 图例
                 HStack(spacing: 4) {
                     Spacer()
                     Text(Strings.heatmapLegendLess)
                         .font(.system(size: 9))
                         .foregroundStyle(.tertiary)
                     ForEach(0..<5, id: \.self) { level in
-                        RoundedRectangle(cornerRadius: 1.5)
-                            .fill(colorForLevel(level))
-                            .frame(width: 8, height: 8)
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 1.5)
+                                .fill(Color.primary.opacity(0.08))
+                            if level > 0 {
+                                RoundedRectangle(cornerRadius: 1.5)
+                                    .fill(Color.heatmapAccent.opacity(Self.levelOpacities[level]))
+                            }
+                        }
+                        .frame(width: 8, height: 8)
                     }
                     Text(Strings.heatmapLegendMore)
                         .font(.system(size: 9))
@@ -75,37 +81,52 @@ struct ActivityHeatmapView: View {
                 }
             } else {
                 RoundedRectangle(cornerRadius: 6)
-                    .fill(Color.gray.opacity(0.06))
+                    .fill(Color.primary.opacity(0.05))
                     .frame(height: 7 * (cellSize + spacing) - spacing)
             }
         }
         .animation(.easeOut(duration: 0.12), value: hovered)
     }
 
-    // MARK: - Cell
+    // MARK: - 色阶透明度定义（参考 RareUI）
+
+    /// 各等级对应的强调色透明度（0 级透明露底，1-4 级分别为 30%、52%、76%、100%）
+    private static let levelOpacities: [Double] = [0.0, 0.30, 0.52, 0.76, 1.0]
+
+    // MARK: - 单元格视图
 
     @ViewBuilder
     private func cellView(week: [HeatmapCell?], weekIdx: Int, dayIdx: Int) -> some View {
         let cell = dayIdx < week.count ? week[dayIdx] : nil
-        let level = cell?.level ?? 0
+        let level = min(max(cell?.level ?? 0, 0), 4)
         let key = HoveredCellKey(week: weekIdx, day: dayIdx)
         let isHovered = cell != nil && hovered == key
-        RoundedRectangle(cornerRadius: 2)
-            .fill(colorForLevel(min(max(level, 0), 4)))
-            .frame(width: cellSize, height: cellSize)
-            .overlay(
-                RoundedRectangle(cornerRadius: 2)
-                    .strokeBorder(Color.primary.opacity(isHovered ? 0.55 : 0), lineWidth: 1)
-            )
-            .onHover { inside in
-                // Only meaningful cells (real days) carry a tooltip; grid padding is skipped.
-                guard cell != nil else { return }
-                if inside {
-                    hovered = key
-                } else if hovered == key {
-                    hovered = nil
-                }
+
+        ZStack {
+            // 底座：参考 RareUI 的 bg-foreground/[0.08]，深浅模式下提供清晰且不过于刺眼的网格轮廓
+            RoundedRectangle(cornerRadius: 2.5)
+                .fill(Color.primary.opacity(0.08))
+
+            // 活跃度色阶：叠加 GitHub 亮绿 #39D353 及对应阶梯透明度
+            if level > 0 {
+                RoundedRectangle(cornerRadius: 2.5)
+                    .fill(Color.heatmapAccent.opacity(Self.levelOpacities[level]))
             }
+        }
+        .frame(width: cellSize, height: cellSize)
+        .overlay(
+            RoundedRectangle(cornerRadius: 2.5)
+                .strokeBorder(isHovered ? Color.primary.opacity(0.60) : Color.clear, lineWidth: 1)
+        )
+        .onHover { inside in
+            // 仅对有效日期单元格响应悬停提示，跳过占位留白单元格
+            guard cell != nil else { return }
+            if inside {
+                hovered = key
+            } else if hovered == key {
+                hovered = nil
+            }
+        }
     }
 
     // MARK: - Header trailing
@@ -177,8 +198,9 @@ struct ActivityHeatmapView: View {
         return out.string(from: date)
     }
 
-    // MARK: - Helpers
+    // MARK: - 辅助方法
 
+    /// 返回对应等级的热力图颜色
     private func colorForLevel(_ level: Int) -> Color {
         let clamped = min(max(level, 0), Color.heatmapLevels.count - 1)
         return Color.heatmapLevels[clamped]

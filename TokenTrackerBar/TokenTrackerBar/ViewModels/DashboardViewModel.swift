@@ -37,9 +37,10 @@ class DashboardViewModel: ObservableObject {
         category: "DashboardViewModel"
     )
 
-    // MARK: - Published State
+    // MARK: - 发布的界面状态
 
-    @Published var period: DateHelpers.Period = .month
+    /// 默认使用日视图（.day），可切换为周（.week）、月（.month）、全部（.total）
+    @Published var period: DateHelpers.Period = .day
     @Published var todaySummary: UsageSummaryResponse?
     @Published var summary: UsageSummaryResponse?
     @Published var rollingSummary: UsageSummaryResponse?

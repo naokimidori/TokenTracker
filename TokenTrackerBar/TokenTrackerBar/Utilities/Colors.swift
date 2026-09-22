@@ -4,13 +4,41 @@ extension Color {
     /// Primary accent used for emphasis throughout the app.
     static let brand = Color.accentColor
 
-    /// Heatmap level colors using the brand accent, indexed 0-4.
+    /// Helper to produce an adaptive color for light and dark appearances.
+    static func adaptive(light: Color, dark: Color) -> Color {
+        Color(nsColor: NSColor(name: nil) { appearance in
+            appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? NSColor(dark) : NSColor(light)
+        })
+    }
+
+    /// 活跃度日历主强调色（GitHub 亮绿 #39D353）
+    static let heatmapAccent = Color(.sRGB, red: 57.0 / 255.0, green: 211.0 / 255.0, blue: 83.0 / 255.0, opacity: 1.0)
+
+    /// 热力图各级色阶（参考 RareUI GitHub Activity：0 级为前景色 8% 底座，1-4 级分别为 30%、52%、76%、100% 亮绿叠加）
+    private static let heatmapLevel0: Color = adaptive(
+        light: Color(.sRGB, red: 0.92, green: 0.92, blue: 0.92, opacity: 1.0), // #EBEBEB 浅灰底块
+        dark:  Color(.sRGB, red: 0.20, green: 0.20, blue: 0.22, opacity: 1.0)  // #323236 深色模式清晰底块
+    )
+    private static let heatmapLevel1: Color = adaptive(
+        light: Color(.sRGB, red: 0.71, green: 0.89, blue: 0.74, opacity: 1.0), // #B6E4BD 浅淡绿
+        dark:  Color(.sRGB, red: 0.20, green: 0.38, blue: 0.25, opacity: 1.0)  // #34623F 深翠绿
+    )
+    private static let heatmapLevel2: Color = adaptive(
+        light: Color(.sRGB, red: 0.56, green: 0.87, blue: 0.61, opacity: 1.0), // #8EDF9C 清新中绿
+        dark:  Color(.sRGB, red: 0.21, green: 0.53, blue: 0.27, opacity: 1.0)  // #368645 生机翡翠绿
+    )
+    private static let heatmapLevel3: Color = adaptive(
+        light: Color(.sRGB, red: 0.39, green: 0.85, blue: 0.47, opacity: 1.0), // #64D977 明艳草绿
+        dark:  Color(.sRGB, red: 0.22, green: 0.67, blue: 0.30, opacity: 1.0)  // #37AC4C 高亮活跃绿
+    )
+    private static let heatmapLevel4: Color = adaptive(
+        light: Color(.sRGB, red: 0.22, green: 0.83, blue: 0.33, opacity: 1.0), // #39D353 饱和亮绿
+        dark:  Color(.sRGB, red: 0.22, green: 0.83, blue: 0.33, opacity: 1.0)  // #39D353 荧光极高亮
+    )
+
+    /// 热力图等级颜色数组，索引 0-4 分别对应无活跃到极高活跃
     static let heatmapLevels: [Color] = [
-        Color(.sRGB, red: 0.5, green: 0.5, blue: 0.5, opacity: 0.10),  // level 0 — empty
-        Color.accentColor.opacity(0.25),                                  // level 1
-        Color.accentColor.opacity(0.50),                                  // level 2
-        Color.accentColor.opacity(0.75),                                  // level 3
-        Color.accentColor,                                                // level 4
+        heatmapLevel0, heatmapLevel1, heatmapLevel2, heatmapLevel3, heatmapLevel4
     ]
 
     /// Trend chart fill gradient.

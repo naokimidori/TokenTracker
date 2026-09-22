@@ -348,7 +348,8 @@ export function DashboardPage({
   const tzOffsetMinutes = useMemo(() => getBrowserTimeZoneOffsetMinutes(), []);
   const mockNow = useMemo(() => getMockNow(), []);
   const cacheKey = publicMode ? null : auth?.userId || auth?.email || "default";
-  const [selectedPeriod, setSelectedPeriod] = useState("month");
+  // 默认使用日视图（day），展示当天用量与小时级趋势
+  const [selectedPeriod, setSelectedPeriod] = useState("day");
   const [customFrom, setCustomFrom] = useState(null);
   const [customTo, setCustomTo] = useState(null);
   const [customRangeOpen, setCustomRangeOpen] = useState(false);
@@ -664,7 +665,7 @@ export function DashboardPage({
   const detailsColumns = useMemo(() => getDetailsSortColumns(detailsDateKey), [detailsDateKey]);
   const dailyBreakdownDateKey = "day";
   const dailyBreakdownColumns = useMemo(() => getDetailsSortColumns(dailyBreakdownDateKey), []);
-  const [sort, setSort] = useState(() => ({ key: "day", dir: "desc" }));
+  const [sort, setSort] = useState(() => ({ key: "hour", dir: "desc" }));
   useEffect(() => {
     setSort((prev) => {
       if (!DETAILS_DATE_KEYS.has(prev.key)) return prev;
@@ -849,10 +850,10 @@ export function DashboardPage({
     return count;
   }, [signedIn, mockEnabled, heatmap?.active_days, heatmap?.weeks, heatmapDaily]);
 
-  const [prevPeriod, setPrevPeriod] = useState("month");
+  const [prevPeriod, setPrevPeriod] = useState("day");
   const handlePeriodChange = useCallback((p) => {
     if (p === "custom") {
-      setPrevPeriod((prev) => (prev === "custom" ? "month" : prev));
+      setPrevPeriod((prev) => (prev === "custom" ? "day" : prev));
       setSelectedPeriod((cur) => {
         // If already have custom dates, switch to custom immediately
         if (customFrom && customTo) return "custom";
