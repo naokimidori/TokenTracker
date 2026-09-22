@@ -2272,10 +2272,11 @@ function readAntigravityLimitsCache({ home, nowMs = Date.now() } = {}) {
 function writeAntigravityLimitsCache(limits, { home, nowMs = Date.now() } = {}) {
   if (!limits?.configured || limits.error || !hasAntigravityWindow(limits)) return;
   const cachePath = resolveAntigravityLimitsCachePath({ home });
+  const existing = readAntigravityLimitsCache({ home, nowMs });
   const payload = {
     antigravity: {
-      account_email: limits.account_email || null,
-      account_plan: limits.account_plan || null,
+      account_email: limits.account_email || existing?.account_email || null,
+      account_plan: limits.account_plan || existing?.account_plan || null,
       primary_window: limits.primary_window || null,
       secondary_window: limits.secondary_window || null,
       tertiary_window: limits.tertiary_window || null,
@@ -3497,11 +3498,47 @@ async function fetchAntigravityLimits({
     return result;
   };
 
-  const finalizeQuotaSummary = (payload) => {
+  const finalizeQuotaSummary = async (payload, localContext = {}) => {
+    const parsed = normalizeAntigravityQuotaSummary(payload);
+    const cached = readAntigravityLimitsCache({ home, nowMs });
+    let accountPlan = parsed.account_plan || cached?.account_plan || null;
+    let accountEmail = parsed.account_email || cached?.account_email || null;
+
+    if (!accountPlan && localContext.workingPort) {
+      try {
+        const localStatus = await requestLocalJson({
+          scheme: localContext.workingScheme || "https",
+          port: localContext.workingPort,
+          path: "/exa.language_server_pb.LanguageServerService/GetUserStatus",
+          body: antigravityDefaultBody(),
+          csrfToken: localContext.processInfo?.csrfToken,
+          timeoutMs: Math.min(localContext.quotaTimeoutMs || 2000, 2000),
+          requestFn,
+          signal,
+        });
+        if (localStatus) {
+          const norm = normalizeAntigravityResponse(localStatus);
+          if (norm.account_plan) accountPlan = norm.account_plan;
+          if (norm.account_email) accountEmail = norm.account_email;
+        }
+      } catch (_e) {}
+    }
+
+    if (!accountPlan && creds) {
+      try {
+        const accessToken = await resolveAntigravityAccessToken(creds, { fetchImpl, nowMs, signal });
+        if (accessToken) {
+          accountPlan = await fetchAntigravityPlanLabel(fetchImpl, accessToken, signal);
+        }
+      } catch (_e) {}
+    }
+
     const result = {
       configured: true,
       error: null,
-      ...normalizeAntigravityQuotaSummary(payload),
+      ...parsed,
+      account_plan: accountPlan || null,
+      account_email: accountEmail || null,
     };
     writeAntigravityLimitsCache(result, { home, nowMs });
     return result;
@@ -3606,7 +3643,12 @@ async function fetchAntigravityLimits({
           requestFn,
           signal,
         });
-        return finalizeQuotaSummary(quotaSummary);
+        return await finalizeQuotaSummary(quotaSummary, {
+          workingScheme,
+          workingPort,
+          processInfo,
+          quotaTimeoutMs,
+        });
       } catch (_quotaError) {
         // quota summary not available (IDE servers return 404) → fall back to GetUserStatus
       }

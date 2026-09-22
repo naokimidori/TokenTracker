@@ -4646,6 +4646,42 @@ describe("getUsageLimits plan_label", () => {
       fs.rmSync(tmp, { recursive: true, force: true });
     }
   });
+
+  it("preserves Antigravity plan_label Google AI Pro across local quota refreshes", async () => {
+    resetUsageLimitsCache();
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "tokentracker-limits-antigravity-plan-"));
+    try {
+      const trackerDir = path.join(tmp, ".tokentracker", "tracker");
+      fs.mkdirSync(trackerDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(trackerDir, "usage-limits-cache.json"),
+        JSON.stringify({
+          antigravity: {
+            account_email: "test@example.com",
+            account_plan: "Google AI Pro",
+            primary_window: { used_percent: 10, reset_at: new Date(Date.now() + 3600000).toISOString() },
+            cached_at: new Date().toISOString(),
+          },
+        }),
+      );
+
+      const result = await getUsageLimits({
+        home: tmp,
+        platform: "darwin",
+        providerTimeoutMs: 50,
+        securityRunner() { return { status: 1, stdout: "" }; },
+        commandRunner() { return { status: 1, stdout: "" }; },
+        fetchImpl() { return new Promise(() => {}); },
+      });
+
+      assert.equal(result.antigravity.configured, true);
+      assert.equal(result.antigravity.error, null);
+      assert.equal(result.antigravity.plan_label, "Google AI Pro");
+    } finally {
+      resetUsageLimitsCache();
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
+  });
 });
 
 describe("getUsageLimits Ark timeout fallback", () => {
