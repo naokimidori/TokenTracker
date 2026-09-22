@@ -53,8 +53,6 @@ import { useAccountDevices } from "../hooks/use-account-devices.js";
 import { DeviceUsageCard } from "../ui/dashboard/components/DeviceUsageCard.jsx";
 import { formatDeviceLabel } from "../lib/device-label.js";
 import { CLOUD_USAGE_SYNCED_EVENT, getCurrentDeviceId } from "../lib/cloud-sync-prefs";
-import { ShareModal } from "../ui/share/ShareModal";
-import { useShareCardData } from "../ui/share/use-share-card-data";
 import { runSingleFlight } from "../lib/single-flight";
 import {
   LOCAL_DASHBOARD_REFRESH_OPTIONS,
@@ -151,7 +149,6 @@ export function DashboardPage({
     return isScreenshotModeEnabled(window.location.search);
   }, []);
   const forceInstall = useMemo(() => isForceInstallEnabled(), []);
-  const [shareModalOpen, setShareModalOpen] = useState(false);
   const identityScrambleDurationMs = 2200;
   const [coreIndexCollapsed, setCoreIndexCollapsed] = useState(true);
   const [installCopied, setInstallCopied] = useState(false);
@@ -1266,25 +1263,6 @@ export function DashboardPage({
     [modelBreakdown],
   );
 
-  const shareCardData = useShareCardData({
-    enabled: shareModalOpen,
-    handle: identityDisplayName,
-    startDate: identityStartDate,
-    activeDays,
-    summary,
-    topModels,
-    period,
-    periodFrom: from,
-    periodTo: to,
-    heatmap,
-    accessToken: typeof accessToken === "string" ? accessToken : null,
-    userId: auth?.userId || null,
-    currency,
-    exchangeRate: rate,
-  });
-  const openShareModal = useCallback(() => setShareModalOpen(true), []);
-  const closeShareModal = useCallback(() => setShareModalOpen(false), []);
-
   const openCostModal = useCallback(() => setCostModalOpen(true), []);
   const closeCostModal = useCallback(() => setCostModalOpen(false), []);
   const costInfoEnabled = summaryCostValue && summaryCostValue !== "-" && fleetData.length > 0;
@@ -1373,10 +1351,8 @@ export function DashboardPage({
   }, [onMainContentVisible, showAuthGate, showExpiredGate, usageLoadingState]);
 
   return (
-    <>
     <DashboardView
       copy={copy}
-      onOpenShare={openShareModal}
       screenshotMode={screenshotMode}
       showExpiredGate={showExpiredGate}
       showAuthGate={showAuthGate}
@@ -1481,12 +1457,5 @@ export function DashboardPage({
       rightCardOrder={dashboardCardOrder.right.order}
       onRightReorder={dashboardCardOrder.right.reorder}
     />
-    <ShareModal
-      open={shareModalOpen}
-      onClose={closeShareModal}
-      data={shareCardData}
-      twitterText={screenshotTwitterText}
-    />
-    </>
   );
 }

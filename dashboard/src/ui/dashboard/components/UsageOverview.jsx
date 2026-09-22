@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { motion, useReducedMotion } from "motion/react";
-import { Info, Loader2, RefreshCw, SquareArrowOutUpRight } from "lucide-react";
+import { Info, Loader2, RefreshCw } from "lucide-react";
 
 // Solid (fill-based) monochrome all-tools mark — matches the fill-based
 // mono provider icons, unlike lucide's stroke-only Layers3. Drawn bold and
@@ -225,7 +225,6 @@ export function UsageOverview({
   onCustomRangeApply,
   customRangeOpen,
   onCustomRangeOpenChange,
-  onOpenShare,
   from,
   to,
   deviceOptions = [],
@@ -440,17 +439,6 @@ export function UsageOverview({
                 matchTriggerWidth
                 className="h-8 px-3 text-xs font-medium rounded-md border-oai-gray-300 dark:border-oai-gray-700 bg-oai-white dark:bg-oai-gray-900 text-oai-black dark:text-oai-white hover:border-oai-brand hover:text-oai-brand hover:[&_svg]:text-oai-brand transition-colors duration-200"
               />
-            ) : null}
-            {onOpenShare ? (
-              <button
-                type="button"
-                onClick={onOpenShare}
-                aria-label={copy("share.button.aria")}
-                className="inline-flex items-center justify-center gap-1.5 h-8 px-3 text-xs font-medium rounded-md border border-oai-gray-300 dark:border-oai-gray-700 bg-oai-white dark:bg-oai-gray-900 text-oai-black dark:text-oai-white hover:border-oai-brand hover:text-oai-brand transition-colors duration-200"
-              >
-                <SquareArrowOutUpRight className="h-3.5 w-3.5" strokeWidth={2} />
-                {copy("share.button.label")}
-              </button>
             ) : null}
             {onRefresh && (
               <RefreshButton loading={loading} onClick={onRefresh} />

@@ -1203,9 +1203,9 @@ export default defineConfig(({ mode }) => {
     define["import.meta.env.VITE_APP_VERSION"] = JSON.stringify(fallbackVersion);
   }
 
+  // 打包入口（单页入口）
   const rollupInput = {
     main: path.resolve(ROOT_DIR, "index.html"),
-    share: path.resolve(ROOT_DIR, "share.html"),
   };
 
   return {

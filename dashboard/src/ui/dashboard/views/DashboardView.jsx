@@ -39,7 +39,6 @@ export function DashboardView(props) {
 
   const {
     copy,
-    onOpenShare,
     screenshotMode,
     showExpiredGate,
     showAuthGate,
@@ -293,7 +292,6 @@ export function DashboardView(props) {
               onRefresh={screenshotMode ? null : refreshAll}
               loading={usageLoadingState}
               announceLoading={announceUsageLoading}
-              onOpenShare={screenshotMode ? null : onOpenShare}
               customFrom={customFrom}
               customTo={customTo}
               onCustomRangeApply={onCustomRangeApply}

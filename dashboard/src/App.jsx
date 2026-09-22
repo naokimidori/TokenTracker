@@ -68,16 +68,9 @@ export default function App() {
   }, []);
 
   const pathname = location?.pathname || "/";
-  const pageUrl = new URL(window.location.href);
-  const sharePathname = pageUrl.pathname.replace(/\/+$/, "") || "/";
-  const shareMatch = sharePathname.match(/^\/share\/([^/?#]+)$/i);
-  const tokenFromPath = shareMatch?.[1] || null;
-  const tokenFromQuery = pageUrl.searchParams.get("token") || null;
-  const publicToken = tokenFromPath || tokenFromQuery;
-  const publicMode =
-    sharePathname === "/share" ||
-    sharePathname === "/share.html" ||
-    sharePathname.startsWith("/share/");
+  // 纯单机本地模式，无需公共分享令牌
+  const publicToken = null;
+  const publicMode = false;
 
   const isLocalMode =
     typeof window !== "undefined" &&
