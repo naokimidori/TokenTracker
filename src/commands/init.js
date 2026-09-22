@@ -88,7 +88,6 @@ const {
   createSpinner,
 } = require("../lib/cli-ui");
 const { renderLocalReport, renderAuthTransition, renderSuccessBox } = require("../lib/init-flow");
-const { maybeShowStarCta } = require("../lib/star-cta");
 
 const ASCII_LOGO = [
   "████████╗ ██████╗ ██╗  ██╗███████╗███╗   ██╗",
@@ -253,7 +252,6 @@ async function cmdInit(argv) {
   }
 
   renderLocalSuccess({ firstSync });
-  await maybeShowStarCta({ trackerDir });
 }
 
 function renderWelcome() {

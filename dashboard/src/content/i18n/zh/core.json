@@ -443,6 +443,7 @@
   "settings.menubar.autoUpdate": "自动更新",
   "settings.menubar.autoUpdateHint": "在后台自动下载并安装新版本。关闭后仍可随时手动检查更新。",
   "settings.menubar.checkUpdates": "检查更新",
+  "settings.menubar.about": "关于",
   "settings.footer.statusPage": "系统状态",
   "menubar.slot.primary": "第一个位置",
   "menubar.slot.secondary": "第二个位置",

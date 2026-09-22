@@ -30,20 +30,7 @@ test("macOS releases the dashboard WKWebView after a normal close", () => {
   assert.match(closeHandler, /releaseDashboardResources\(closingWindow: closingWindow\)/);
 });
 
-test("macOS keeps PKCE state only while native OAuth is in flight", () => {
-  const source = read(
-    "TokenTrackerBar/TokenTrackerBar/Services/DashboardWindowController.swift",
-  );
-  const callbackSource = read("dashboard/src/pages/NativeAuthCallbackPage.jsx");
 
-  assert.match(source, /private var oauthInFlight = false/);
-  assert.match(source, /private var oauthTimeoutTask: Task<Void, Never>\?/);
-  assert.match(source, /beginNativeOAuth\(\)/);
-  assert.match(source, /completeNativeOAuth\(\)/);
-  assert.match(source, /expireNativeOAuth\(\)/);
-  assert.match(source, /messageType == "authCompleted"/);
-  assert.match(callbackSource, /postNativeMessage\(\{ type: "authCompleted" \}\)/);
-});
 
 test("Windows hides and reuses the dashboard WebView2 on normal close", () => {
   const windowSource = read("TokenTrackerWin/DashboardWindow.cs");

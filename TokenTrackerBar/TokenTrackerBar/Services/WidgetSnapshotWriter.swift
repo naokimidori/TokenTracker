@@ -83,9 +83,8 @@ enum WidgetSnapshotWriter {
         // each period comes from one response and one calendar window.
         let last7dRange = DateHelpers.dayRange(daysBack: 6, endingAt: inputs.capturedAt)
         let last30dRange = DateHelpers.dayRange(daysBack: 29, endingAt: inputs.capturedAt)
-        async let last7dSummary = fetchRangeSummary(last7dRange)
-        async let last30dSummary = fetchRangeSummary(last30dRange)
-        let (summary7d, summary30d) = await (last7dSummary, last30dSummary)
+        let summary7d = await fetchRangeSummary(last7dRange)
+        let summary30d = await fetchRangeSummary(last30dRange)
 
         // Superseded while awaiting the range fetches — drop this stale write.
         guard ticket == updateGeneration else { return }

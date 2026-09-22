@@ -1,11 +1,10 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Activity, ArrowUpRight, Download, RefreshCw } from "lucide-react";
+import { ArrowUpRight, Download, RefreshCw } from "lucide-react";
 import { useNativeSettings } from "../../hooks/use-native-settings.js";
 import { useLocale } from "../../hooks/useLocale.js";
 import { ConfirmModal } from "../../ui/components";
 import { showToast } from "../../ui/components/Toast.jsx";
-import { STATUSPAGE_URL } from "../../lib/config";
 import { copy } from "../../lib/copy";
 import { cn } from "../../lib/cn";
 import { isNativeWindowsApp } from "../../lib/native-bridge.js";
@@ -158,7 +157,7 @@ export function NativeAppFooter() {
   const handleCheckUpdates = async () => {
     setChecking(true);
     try {
-      const res = await fetch("https://api.github.com/repos/xiufengsun/TokenTracker/releases/latest");
+      const res = await fetch("https://api.github.com/repos/naokimidori/TokenTracker/releases/latest");
       if (!res.ok) throw new Error("Failed to fetch");
       const data = await res.json();
       const latestVersion = data.tag_name;
@@ -210,9 +209,8 @@ export function NativeAppFooter() {
               onClick={() => runAction("openAbout")}
               className="underline-offset-2 transition-colors hover:text-oai-gray-700 hover:underline dark:hover:text-oai-gray-300"
             >
-              GitHub
+              {copy("settings.menubar.about") || "About"}
             </button>
-            <span aria-hidden>·</span>
           </>
         ) : (
           <>
@@ -226,18 +224,8 @@ export function NativeAppFooter() {
             >
               {checking ? copy("settings.menubar.updates.checking") : copy("settings.menubar.checkUpdates")}
             </button>
-            <span aria-hidden>·</span>
           </>
         )}
-        <a
-          href={STATUSPAGE_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 underline-offset-2 transition-colors hover:text-oai-gray-700 hover:underline dark:hover:text-oai-gray-300"
-        >
-          <Activity className="h-3.5 w-3.5" aria-hidden />
-          {copy("settings.footer.statusPage")}
-        </a>
       </div>
 
       <ConfirmModal

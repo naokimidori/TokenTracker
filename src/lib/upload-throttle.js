@@ -1,3 +1,4 @@
+// 上传频控与退避状态管理（单机运行兼容）
 const DEFAULTS = {
   intervalMs: 30 * 60_000,
   jitterMsMax: 60_000,
@@ -83,7 +84,6 @@ function recordUploadFailure({ nowMs, state, error, config }) {
   const s = normalizeState(state);
 
   const retryAfterMs = toSafeInt(error?.retryAfterMs);
-  const status = toSafeInt(error?.status);
 
   let backoffMs = 0;
   if (retryAfterMs > 0) {

@@ -17,7 +17,6 @@ function read(relativePath) {
 // organic traffic these tests protect.
 const ROUTE_PAGES = [
   { route: "/ip-check", file: "/ip-check.html", canonical: "https://www.tokentracker.cc/ip-check" },
-  { route: "/leaderboard", file: "/leaderboard.html", canonical: "https://www.tokentracker.cc/leaderboard" },
 ];
 
 test("vercel.json rewrites map route SEO pages before the SPA catch-all", () => {

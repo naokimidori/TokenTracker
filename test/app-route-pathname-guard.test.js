@@ -19,21 +19,6 @@ test("App.jsx parses without duplicate identifier errors", async () => {
   await assert.doesNotReject(parseDashboardFile("dashboard/src/App.jsx"));
 });
 
-test("App.jsx routes to /leaderboard page", () => {
-  const appPath = path.join(repoRoot, "dashboard/src/App.jsx");
-  const source = fs.readFileSync(appPath, "utf8");
-  assert.equal(source.includes('"/rankings"'), false, "Removed /rankings route should not exist");
-  assert.equal(source.includes('"/leaderboard"'), true, "/leaderboard route should exist");
-  assert.equal(source.includes("LeaderboardPage"), true, "LeaderboardPage should be referenced");
-});
-
-test("App.jsx routes to /login page", () => {
-  const appPath = path.join(repoRoot, "dashboard/src/App.jsx");
-  const source = fs.readFileSync(appPath, "utf8");
-  assert.equal(source.includes('"/login"'), true, "/login route should exist");
-  assert.equal(source.includes("LoginPage"), true, "LoginPage should be referenced");
-});
-
 test("App.jsx keeps menu bar configuration inside /widgets", () => {
   const appPath = path.join(repoRoot, "dashboard/src/App.jsx");
   const source = fs.readFileSync(appPath, "utf8");
@@ -41,11 +26,4 @@ test("App.jsx keeps menu bar configuration inside /widgets", () => {
   assert.equal(source.includes("WidgetsPage"), true, "WidgetsPage should be referenced");
   assert.equal(source.includes('"/menubar"'), false, "/menubar should not be a separate route");
   assert.equal(source.includes("MenuBarPage"), false, "MenuBarPage should not be referenced");
-});
-
-test("App.jsx routes to the desktop pet settings page", () => {
-  const appPath = path.join(repoRoot, "dashboard/src/App.jsx");
-  const source = fs.readFileSync(appPath, "utf8");
-  assert.equal(source.includes('"/pet-settings"'), true, "/pet-settings route should exist");
-  assert.equal(source.includes("PetPage"), true, "PetPage should be lazy-loaded and referenced");
 });

@@ -139,7 +139,7 @@ test("CLI onboarding advertises the same supported integrations", () => {
 test("npm metadata carries the current product hook", () => {
   const pkg = JSON.parse(read("package.json"));
   assert.match(pkg.description, new RegExp(`${TOOL_COUNT} tools`));
-  assert.match(pkg.description, /desktop pet/);
+  assert.match(pkg.description, /widgets/);
   assert.ok(pkg.keywords.includes("desktop-widget"));
   assert.ok(pkg.keywords.includes("ai-coding-tools"));
 });

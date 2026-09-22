@@ -8,8 +8,17 @@ const { resolveTrackerPaths } = require("../lib/tracker-paths");
 const { createLocalApiHandler, resolveQueuePath } = require("../lib/local-api");
 const { ensurePricingLoaded } = require("../lib/pricing");
 const { serveStaticFile } = require("../lib/static-server");
-const { openInBrowser } = require("../lib/browser-auth");
-const { maybeShowStarCta } = require("../lib/star-cta");
+
+function openInBrowser(targetUrl) {
+  try {
+    const p = process.platform;
+    if (p === "darwin") cp.spawn("open", [targetUrl], { detached: true, stdio: "ignore" }).unref();
+    else if (p === "win32") cp.spawn("cmd.exe", ["/c", "start", '""', targetUrl], { detached: true, stdio: "ignore" }).unref();
+    else cp.spawn("xdg-open", [targetUrl], { detached: true, stdio: "ignore" }).unref();
+  } catch {
+    // 忽略打开默认浏览器失败的异常
+  }
+}
 
 const DEFAULT_PORT = 7680;
 // Windows Delivery Optimization (DoSvc) listens on 0.0.0.0:7680 on virtually
@@ -218,7 +227,6 @@ async function cmdServe(argv) {
     }
   }
 
-  await maybeShowStarCta({ trackerDir });
 
   // The Windows desktop app keeps this server alive even when the dashboard
   // window is closed. Provider hooks are the fast path, but they can be removed

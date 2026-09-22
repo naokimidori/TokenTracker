@@ -398,13 +398,10 @@ struct DynamicIslandView: View {
             .minimumScaleFactor(0.8)
     }
 
-    @StateObject private var starStore = GitHubStarStore.shared
     @State private var hoveringBrand = false
-    @State private var hoveringStar = false
     @State private var hoveringGear = false
 
-    /// Shared height for the header's Star capsule and gear button so the two
-    /// controls read as one family (same height, same 0.5pt hairline).
+    /// 展开头部控制项高度
     private static let headerControlHeight: CGFloat = 26
 
     private var expandedHeaderRow: some View {
@@ -412,9 +409,7 @@ struct DynamicIslandView: View {
         let appIcon = NSApp.applicationIconImage ?? NSImage(named: NSImage.applicationIconName) ?? NSImage()
         return HStack(spacing: 0) {
             Button(action: {
-                if let url = URL(string: "https://www.tokentracker.cc") {
-                    NSWorkspace.shared.open(url)
-                }
+                DashboardPresentationCoordinator.shared.showDashboard()
             }) {
                 HStack(spacing: 6) {
                     Image(nsImage: appIcon)
@@ -436,49 +431,12 @@ struct DynamicIslandView: View {
             .onHover { hovering in
                 withAnimation(.easeOut(duration: 0.12)) { hoveringBrand = hovering }
             }
-            .accessibilityLabel(Strings.openTokenTrackerWebsite)
-            .help(Strings.openTokenTrackerWebsite)
+            .accessibilityLabel(Strings.openDashboard)
+            .help(Strings.openDashboard)
 
             Spacer()
 
-            Button(action: {
-                if let url = URL(string: "https://github.com/xiufengsun/TokenTracker") {
-                    NSWorkspace.shared.open(url)
-                }
-            }) {
-                HStack(spacing: 4) {
-                    GithubLogoView(size: 11.5)
-                        .opacity(hoveringStar ? 1.0 : 0.9)
-
-                    Text(Strings.starButton)
-                        .font(.system(size: 11, weight: .medium, design: .rounded))
-                        .foregroundStyle(Color.white.opacity(hoveringStar ? 1.0 : 0.90))
-
-                    if let stars = starStore.starCount {
-                        Text(String(stars))
-                            .font(.system(size: 10, weight: .regular, design: .rounded))
-                            .foregroundStyle(Color.white.opacity(hoveringStar ? 0.75 : 0.55))
-                    }
-                }
-                .padding(.horizontal, 9)
-                .frame(height: Self.headerControlHeight)
-                .background(
-                    Capsule()
-                        .fill(Color.white.opacity(hoveringStar ? 0.16 : 0.09))
-                        .overlay(Capsule().strokeBorder(Color.white.opacity(hoveringStar ? 0.28 : 0.15), lineWidth: 0.5))
-                )
-            }
-            .buttonStyle(.plain)
-            .pointingHandCursor()
-            .onHover { hovering in
-                withAnimation(.easeOut(duration: 0.12)) { hoveringStar = hovering }
-            }
-            .accessibilityLabel(Strings.menuStarOnGitHub)
-            .help(Strings.menuStarOnGitHub)
-
-            // Settings gear — same visual family as the Star capsule. Surfaces
-            // the tray menu on click, since right-clicking the island is easy
-            // to miss.
+            // 设置齿轮按钮：点击呼出托盘上下文菜单
             Button(action: {
                 StatusBarController.showContextMenuFromIslandGear()
             }) {
@@ -618,76 +576,3 @@ struct IslandRoundedRectangle: Shape {
     }
 }
 
-@MainActor
-final class GitHubStarStore: ObservableObject {
-    static let shared = GitHubStarStore()
-    @Published var starCount: Int? = nil
-
-    private static let cacheKey = "GitHubStarCountCache"
-
-    private init() {
-        // Serve the last known count immediately; refresh in the background.
-        let cached = UserDefaults.standard.integer(forKey: Self.cacheKey)
-        if cached > 0 { starCount = cached }
-        fetchStars()
-    }
-
-    func fetchStars() {
-        guard let url = URL(string: "https://api.github.com/repos/xiufengsun/TokenTracker") else { return }
-        var request = URLRequest(url: url, timeoutInterval: 10)
-        request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
-        Task {
-            do {
-                let (data, response) = try await URLSession.shared.data(for: request)
-                guard (response as? HTTPURLResponse)?.statusCode == 200 else { return }
-                if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                   let count = json["stargazers_count"] as? Int {
-                    self.starCount = count
-                    UserDefaults.standard.set(count, forKey: Self.cacheKey)
-                }
-            } catch {
-                // Ignore network errors gracefully
-            }
-        }
-    }
-}
-
-struct GithubLogoView: View {
-    var size: CGFloat = 12
-    var body: some View {
-        Canvas { context, size in
-            var path = Path()
-            let s = size.width / 16.0
-            path.move(to: CGPoint(x: 8 * s, y: 0))
-            path.addCurve(to: CGPoint(x: 16 * s, y: 8 * s), control1: CGPoint(x: 12.42 * s, y: 0), control2: CGPoint(x: 16 * s, y: 3.58 * s))
-            path.addCurve(to: CGPoint(x: 10.55 * s, y: 15.59 * s), control1: CGPoint(x: 16 * s, y: 11.54 * s), control2: CGPoint(x: 13.68 * s, y: 14.54 * s))
-            path.addCurve(to: CGPoint(x: 10 * s, y: 15.21 * s), control1: CGPoint(x: 10.15 * s, y: 15.67 * s), control2: CGPoint(x: 10 * s, y: 15.42 * s))
-            path.addCurve(to: CGPoint(x: 10.01 * s, y: 13.01 * s), control1: CGPoint(x: 10 * s, y: 14.94 * s), control2: CGPoint(x: 10.01 * s, y: 14.08 * s))
-            path.addCurve(to: CGPoint(x: 9.47 * s, y: 11.53 * s), control1: CGPoint(x: 10.01 * s, y: 12.26 * s), control2: CGPoint(x: 9.76 * s, y: 11.78 * s))
-            path.addCurve(to: CGPoint(x: 13.12 * s, y: 7.58 * s), control1: CGPoint(x: 11.25 * s, y: 11.33 * s), control2: CGPoint(x: 13.12 * s, y: 10.65 * s))
-            path.addCurve(to: CGPoint(x: 12.3 * s, y: 5.43 * s), control1: CGPoint(x: 13.12 * s, y: 6.7 * s), control2: CGPoint(x: 12.81 * s, y: 5.99 * s))
-            path.addCurve(to: CGPoint(x: 12.22 * s, y: 3.31 * s), control1: CGPoint(x: 12.38 * s, y: 5.23 * s), control2: CGPoint(x: 12.66 * s, y: 4.41 * s))
-            path.addCurve(to: CGPoint(x: 10.02 * s, y: 4.13 * s), control1: CGPoint(x: 12.22 * s, y: 3.31 * s), control2: CGPoint(x: 11.55 * s, y: 3.09 * s))
-            path.addCurve(to: CGPoint(x: 8 * s, y: 3.86 * s), control1: CGPoint(x: 9.38 * s, y: 3.95 * s), control2: CGPoint(x: 8.7 * s, y: 3.86 * s))
-            path.addCurve(to: CGPoint(x: 5.98 * s, y: 4.13 * s), control1: CGPoint(x: 7.3 * s, y: 3.86 * s), control2: CGPoint(x: 6.62 * s, y: 3.95 * s))
-            path.addCurve(to: CGPoint(x: 3.78 * s, y: 3.31 * s), control1: CGPoint(x: 4.45 * s, y: 3.09 * s), control2: CGPoint(x: 3.78 * s, y: 3.31 * s))
-            path.addCurve(to: CGPoint(x: 3.7 * s, y: 5.43 * s), control1: CGPoint(x: 3.34 * s, y: 4.41 * s), control2: CGPoint(x: 3.62 * s, y: 5.23 * s))
-            path.addCurve(to: CGPoint(x: 2.88 * s, y: 7.58 * s), control1: CGPoint(x: 3.19 * s, y: 5.99 * s), control2: CGPoint(x: 2.88 * s, y: 6.71 * s))
-            path.addCurve(to: CGPoint(x: 6.52 * s, y: 11.53 * s), control1: CGPoint(x: 2.88 * s, y: 10.64 * s), control2: CGPoint(x: 4.74 * s, y: 11.33 * s))
-            path.addCurve(to: CGPoint(x: 6.01 * s, y: 12.6 * s), control1: CGPoint(x: 6.29 * s, y: 11.73 * s), control2: CGPoint(x: 6.08 * s, y: 12.08 * s))
-            path.addCurve(to: CGPoint(x: 3.68 * s, y: 11.94 * s), control1: CGPoint(x: 5.55 * s, y: 12.81 * s), control2: CGPoint(x: 4.4 * s, y: 12.47 * s))
-            path.addCurve(to: CGPoint(x: 2.45 * s, y: 11.12 * s), control1: CGPoint(x: 3.53 * s, y: 11.7 * s), control2: CGPoint(x: 3.08 * s, y: 11.11 * s))
-            path.addCurve(to: CGPoint(x: 2.46 * s, y: 11.65 * s), control1: CGPoint(x: 1.78 * s, y: 11.13 * s), control2: CGPoint(x: 2.18 * s, y: 11.5 * s))
-            path.addCurve(to: CGPoint(x: 3.28 * s, y: 12.78 * s), control1: CGPoint(x: 2.8 * s, y: 11.84 * s), control2: CGPoint(x: 3.19 * s, y: 12.55 * s))
-            path.addCurve(to: CGPoint(x: 5.97 * s, y: 13.72 * s), control1: CGPoint(x: 3.44 * s, y: 13.23 * s), control2: CGPoint(x: 3.96 * s, y: 14.09 * s))
-            path.addCurve(to: CGPoint(x: 5.98 * s, y: 15.21 * s), control1: CGPoint(x: 5.97 * s, y: 14.39 * s), control2: CGPoint(x: 5.98 * s, y: 15.02 * s))
-            path.addCurve(to: CGPoint(x: 5.43 * s, y: 15.59 * s), control1: CGPoint(x: 5.98 * s, y: 15.42 * s), control2: CGPoint(x: 5.83 * s, y: 15.67 * s))
-            path.addCurve(to: CGPoint(x: 0, y: 8 * s), control1: CGPoint(x: 2.32 * s, y: 14.54 * s), control2: CGPoint(x: 0, y: 11.54 * s))
-            path.addCurve(to: CGPoint(x: 8 * s, y: 0), control1: CGPoint(x: 0, y: 3.58 * s), control2: CGPoint(x: 3.58 * s, y: 0))
-            path.closeSubpath()
-
-            context.fill(path, with: .color(.white))
-        }
-        .frame(width: size, height: size)
-    }
-}

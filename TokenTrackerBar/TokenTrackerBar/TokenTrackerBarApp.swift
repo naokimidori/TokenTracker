@@ -31,12 +31,10 @@ struct TokenTrackerBarApp: App {
                     }
                     .keyboardShortcut(",", modifiers: .command)
                 }
-                // Default Help menu shows "Help isn't available" — open the website.
+                // 替换默认的 Help 菜单：打开本地仪表盘
                 CommandGroup(replacing: .help) {
                     Button(Strings.menuHelp) {
-                        if let url = URL(string: "https://www.tokentracker.cc") {
-                            NSWorkspace.shared.open(url)
-                        }
+                        DashboardPresentationCoordinator.shared.showDashboard()
                     }
                 }
             }

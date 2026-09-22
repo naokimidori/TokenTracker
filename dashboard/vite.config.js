@@ -318,61 +318,6 @@ const ROUTE_SEO_PAGES = [
       </p>
     </main>`,
   },
-  {
-    file: "leaderboard.html",
-    url: "https://www.tokentracker.cc/leaderboard",
-    title: "AI Coding Token Usage Leaderboard — Claude, Codex, Cursor",
-    description:
-      "Public Token Tracker leaderboard ranking AI coding token usage across Claude Code, Codex, Cursor, Gemini and 27 tools. Opt-in, privacy-first — token counts only, never prompts.",
-    jsonld: {
-      "@context": "https://schema.org",
-      "@graph": [
-        {
-          "@type": "Organization",
-          "@id": "https://www.tokentracker.cc/#organization",
-          name: "Token Tracker",
-          url: "https://www.tokentracker.cc/",
-        },
-        {
-          "@type": "WebPage",
-          "@id": "https://www.tokentracker.cc/leaderboard#webpage",
-          url: "https://www.tokentracker.cc/leaderboard",
-          name: "AI Coding Token Usage Leaderboard",
-          isPartOf: { "@id": "https://www.tokentracker.cc/#website" },
-          description:
-            "Public leaderboard ranking opt-in AI coding token usage across Claude Code, Codex, Cursor, Gemini and 27 tools.",
-        },
-        {
-          "@type": "BreadcrumbList",
-          itemListElement: [
-            { "@type": "ListItem", position: 1, name: "Home", item: "https://www.tokentracker.cc/" },
-            { "@type": "ListItem", position: 2, name: "Leaderboard", item: "https://www.tokentracker.cc/leaderboard" },
-          ],
-        },
-      ],
-    },
-    seed: `<main class="aeo-seed-content" aria-label="AI Coding Token Usage Leaderboard AI-readable summary">
-      <h1>AI coding token usage leaderboard</h1>
-      <p>
-        The Token Tracker leaderboard ranks opt-in AI coding token usage across Claude Code, OpenAI Codex,
-        Cursor, Gemini CLI and 27 supported tools. It is privacy-first: entries are opt-in and expose token
-        counts only — never prompts or conversation content. See how your AI coding token consumption
-        compares with other developers by model, tool, and time window.
-      </p>
-      <h2>How the leaderboard works</h2>
-      <ul>
-        <li>Opt-in only — you choose whether to appear, using a public display name.</li>
-        <li>Token counts only — never prompts, code, or conversation content.</li>
-        <li>Ranks usage across Claude Code, Codex, Cursor, Gemini and 27 AI coding tools.</li>
-        <li>Powered by optional Token Tracker cloud sync; local-first by default.</li>
-      </ul>
-      <h2>Part of Token Tracker</h2>
-      <p>
-        Token Tracker is a free, open-source, local-first dashboard that monitors AI token usage and cost
-        across 27 AI coding tools. Install with <code>npx tokentracker-cli</code>.
-      </p>
-    </main>`,
-  },
 ];
 
 function routeSeoPagesPlugin() {
@@ -1204,24 +1149,12 @@ function localDataApiPlugin() {
           return;
         }
         const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
-        const isRepoPetApi = url.pathname === "/api/local-auth"
-          || url.pathname === "/functions/tokentracker-pets"
-          // The subscription store schema/shape evolves with this checkout
-          // (cycle field, corrupt-store backups); a stale packaged app on
-          // :7680 would 404 the Limits-page subscription UI in dev mode.
-          || url.pathname === "/functions/tokentracker-subscription-manager"
-          || url.pathname === "/api/pets/import"
-          || url.pathname.startsWith("/api/pets/local/")
-          || url.pathname.startsWith("/api/pets/codex/");
-        // Project usage also runs against the current checkout (not :7680):
-        // the endpoints evolve with the dashboard UI, and a stale packaged
-        // app on :7680 would 404 the drill-down modal.
         const isRepoProjectUsageApi =
           url.pathname === "/functions/tokentracker-project-usage-summary"
           || url.pathname === "/functions/tokentracker-project-usage-detail"
-          // Achievements ship with this checkout too — a stale packaged app
-          // on :7680 would 404 the local badges.
-          || url.pathname === "/functions/tokentracker-achievements";
+          // 订阅管理器配置
+          || url.pathname === "/functions/tokentracker-subscription-manager"
+          || url.pathname === "/api/local-auth";
         // Session efficiency, context health, and automatic Git outcomes are
         // implemented together in this checkout. Keep them on the same code
         // version as the dashboard; an older app listening on :7680 does not
@@ -1239,7 +1172,7 @@ function localDataApiPlugin() {
         // Serve the checkout implementation so a stale packaged desktop app (or
         // Windows DoSvc occupying :7680) cannot hide newly supported tool roots.
         const isRepoSkillsApi = url.pathname === "/functions/tokentracker-skills";
-        if (isRepoPetApi || isRepoProjectUsageApi || isRepoSessionAnalyticsApi || isRepoSkillsApi) {
+        if (isRepoProjectUsageApi || isRepoSessionAnalyticsApi || isRepoSkillsApi) {
           Promise.resolve(handleRepoLocalApi(req, res, url))
             .then((handled) => { if (!handled) next(); })
             .catch(next);
@@ -1270,19 +1203,10 @@ export default defineConfig(({ mode }) => {
     define["import.meta.env.VITE_APP_VERSION"] = JSON.stringify(fallbackVersion);
   }
 
-  // Build inputs. The Windows tray app's floating-pet page (pet.html) is an
-  // OPT-IN extra entry, enabled only when TOKENTRACKER_BUILD_PET=1 (set by the
-  // Windows build). Adding a rollup entry reshuffles shared chunks, so keeping it
-  // off by default makes the macOS + web builds byte-identical to a no-pet build —
-  // this matters because this project has a history of chunk-split changes subtly
-  // breaking the native OAuth callback (see CLAUDE.md). macOS never loads pet.html.
   const rollupInput = {
     main: path.resolve(ROOT_DIR, "index.html"),
     share: path.resolve(ROOT_DIR, "share.html"),
   };
-  if (process.env.TOKENTRACKER_BUILD_PET === "1") {
-    rollupInput.pet = path.resolve(ROOT_DIR, "pet.html");
-  }
 
   return {
     plugins: [

@@ -58,7 +58,6 @@ internal sealed class TrayApplicationContext : ApplicationContext
     private readonly ToolStripMenuItem _petCtxCharacterEmber;
     private readonly ToolStripMenuItem _petCtxCharacterBot;
     private readonly ToolStripMenuItem _petCtxClose;
-    private readonly ToolStripMenuItem _starItem;
     private readonly ToolStripMenuItem _quitItem;
 
     private UsagePoller.UsageStats? _lastStats;
@@ -170,7 +169,6 @@ internal sealed class TrayApplicationContext : ApplicationContext
         _startupItem.Checked = LaunchAtStartup.IsEnabled;
         _startupItem.CheckOnClick = false;
         _checkUpdatesItem = CreateMenuItem("", (_, _) => OnCheckUpdatesClicked());
-        _starItem = CreateMenuItem("", (_, _) => OpenInBrowser(Constants.GitHubUrl));
         _quitItem = CreateMenuItem("", (_, _) => Quit());
 
         _menu = new ContextMenuStrip
@@ -194,7 +192,6 @@ internal sealed class TrayApplicationContext : ApplicationContext
         _menu.Items.Add(CreateSeparator());
         _menu.Items.Add(_startupItem);
         _menu.Items.Add(_checkUpdatesItem);
-        _menu.Items.Add(_starItem);
         _menu.Items.Add(CreateSeparator());
         _menu.Items.Add(_quitItem);
         ApplyLocaleToMenu();
@@ -364,7 +361,6 @@ internal sealed class TrayApplicationContext : ApplicationContext
         UpdatePetSizeChecks();
         UpdatePetCharacterChecks();
         _startupItem.Text = _strings.LaunchAtLogin;
-        _starItem.Text = _strings.StarOnGitHub;
         _quitItem.Text = _strings.Quit;
         RefreshUpdateMenuItem();
 
@@ -777,7 +773,11 @@ internal sealed class TrayApplicationContext : ApplicationContext
                 OnCheckUpdatesClicked();
                 break;
             case "openAbout":
-                OpenInBrowser(Constants.GitHubUrl);
+                MessageBox.Show(
+                    $"TokenTracker v{_updateChecker.CurrentVersion}\n{Constants.GitHubUrl}",
+                    "TokenTracker",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
                 break;
         }
     }

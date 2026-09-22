@@ -460,8 +460,9 @@ final class NativeBridge {
                 self?.pushSettings()
             }
         case "openAbout":
-            if let url = URL(string: "https://github.com/xiufengsun/TokenTracker") {
-                NSWorkspace.shared.open(url)
+            DispatchQueue.main.async {
+                NSApp.activate(ignoringOtherApps: true)
+                NSApp.orderFrontStandardAboutPanel(nil)
             }
         case "openWidgetGallery":
             // There is no public macOS API to open the Edit Widgets UI

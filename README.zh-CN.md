@@ -1,10 +1,23 @@
  <div align="center">
 
-# Token Tracker
+# Token Tracker (精简版 Fork)
+
+> [!NOTE]
+> **关于此 Fork 版本**:
+> 本项目 Fork 自上游原始开源项目 [xiufengsun/TokenTracker](https://github.com/xiufengsun/TokenTracker)。非常感谢原作者的出色工作！
+> 
+> 为了让工具更加纯粹、轻量、专注于本地 AI 编码工具用量跟踪与成本分析，本 Fork 版本进行了如下精简与优化：
+> - **移除桌宠系统（Desktop Pet）**：移除桌面宠物、动作序列帧及相关素材，避免额外前台干扰和资源消耗；
+> - **移除成就系统（Achievements）**：移除成就徽章及相关计算逻辑；
+> - **移除排行榜（Leaderboard）**：移除社区排行与公开主页模块；
+> - **移除云端账户与登录（Account & Cloud Sync）**：去除账号体系、登录弹窗、设备码绑定与云端同步，实现 100% 纯本地离线运行，保障数据绝对私密；
+> - **移除推广引导**：移除各界面的 GitHub Stars 推广弹窗与引流元素；
+> - **稳定性修复**：修复了 macOS 原生菜单栏 App 更新小组件快照时的 Swift 并发栈释放崩溃问题，确保菜单栏常驻极其稳定；
+> - **完整保留**：保留全部 39 款 AI 编程工具的本地用量采集、成本核算、模型明细、本地 Web Dashboard 以及 macOS 菜单栏 / Windows 系统托盘核心体验。
 
 [English](./README.md) · **简体中文** · [日本語](./README.ja.md) · [한국어](./README.ko.md) · [Deutsch](./README.de.md)
 
-### 跨所有 CLI，看清你到底在 AI 上花了多少钱
+### 跨所有 CLI，看清你到底在 AI 上花了多少钱（纯本地轻量版）
 
 自动采集 **39 款 AI 编码工具** 的 token 用量，全程本地聚合，用一套漂亮的 Dashboard 看真实成本与趋势。不需要云账号、不需要 API Key、不需要任何配置 —— 一条命令搞定。
 

@@ -265,6 +265,7 @@
   "settings.menubar.autoUpdate": "Automatische Updates",
   "settings.menubar.autoUpdateHint": "Neue Versionen im Hintergrund automatisch herunterladen und installieren. Die manuelle Suche bleibt auch deaktiviert verfügbar.",
   "settings.menubar.checkUpdates": "Nach Updates suchen",
+  "settings.menubar.about": "Über",
   "settings.footer.statusPage": "Systemstatus",
   "leaderboard.github.aria": "GitHub-Profil öffnen",
   "leaderboard.github.tooltipAction": "Klicken, um GitHub-Profil anzuzeigen",

@@ -2,10 +2,6 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { cn } from "../../lib/cn";
 import { getDashboardEntryPath } from "../../lib/host-mode";
-import { HeaderGithubStar } from "../components/HeaderGithubStar.jsx";
-import { InsforgeUserHeaderControls } from "../../components/InsforgeUserHeaderControls.jsx";
-import { useInsforgeAuth } from "../../contexts/InsforgeAuthContext.jsx";
-import { useLoginModal } from "../../contexts/LoginModalContext.jsx";
 import { STATUSPAGE_URL } from "../../lib/config";
 import { LV3_CSS_VARS } from "./v3/palette.js";
 import { PRIVACY_URL, REPO_URL } from "../../lib/config";
@@ -15,14 +11,10 @@ import { ToolsStrip } from "./v3/ToolsStrip.jsx";
 import { HowItWorksSection } from "./v3/HowItWorksSection.jsx";
 import { CapabilitiesSection } from "./v3/CapabilitiesSection.jsx";
 import { PrivacySection } from "./v3/PrivacySection.jsx";
-import { LeaderboardSection } from "./v3/LeaderboardSection.jsx";
 import { DownloadSection } from "./v3/DownloadSection.jsx";
 
 /**
- * Landing v3 — "token galaxy". A dark, deep-space purple marketing page:
- * WebGL particle hero, GSAP ScrollTrigger storytelling, and live community
- * stats. Section markup lives under ./v3/; this file orchestrates them plus
- * the auth-aware header and the footer.
+ * 营销落地页 - 纯本地展示
  */
 export function MarketingLanding({
   copy,
@@ -35,8 +27,6 @@ export function MarketingLanding({
   installCopied,
   onCopyInstallCommand,
 }) {
-  // One switch for every scroll/canvas animation on the page: reduced motion
-  // and the visual-baseline screenshot job both get the complete static page.
   const animate = !reduceMotion && !screenshotMode;
   const [scrolled, setScrolled] = useState(false);
 
@@ -49,8 +39,6 @@ export function MarketingLanding({
   const isLocalMode =
     typeof window !== "undefined" &&
     (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
-  const { signedIn, loading: authLoading } = useInsforgeAuth();
-  const { openLoginModal } = useLoginModal();
 
   const stats = useCommunityStats();
   const tokenFallback = Number(copy("landing.v3.stats.fallback_tokens")) || 0;
@@ -81,55 +69,15 @@ export function MarketingLanding({
                 Token Tracker
               </span>
             </Link>
-            <div className="hidden sm:block">
-              <HeaderGithubStar />
-            </div>
           </div>
           <div className="flex items-center justify-end gap-3 sm:gap-5 md:gap-6">
-            {/* Leaderboard 纯文字导航链接 — 移动端收起（正文有醒目的榜单 CTA 兜底） */}
-            <Link
-              to="/leaderboard"
-              className="hidden select-none text-sm font-medium text-oai-gray-400 outline-none transition-colors duration-200 hover:text-white focus-visible:underline sm:inline"
-            >
-              {copy("nav.leaderboard")}
-            </Link>
-
-            {/* 未登录场景下，Open Dashboard 应该作为次级文字导航链接并排展示 */}
-            {!signedIn && !authLoading && (
+            <div className="flex items-center gap-2.5 sm:gap-3.5">
               <Link
                 to={getDashboardEntryPath()}
-                className="hidden select-none text-sm font-medium text-oai-gray-400 outline-none transition-colors duration-200 hover:text-white focus-visible:underline sm:inline"
+                className="inline-flex h-8 select-none items-center justify-center rounded-[8px] bg-white px-3.5 text-xs font-bold text-oai-gray-950 shadow-sm transition-all duration-200 hover:bg-oai-gray-100 active:scale-[0.98]"
               >
                 {copy("landing.v2.cta.primary")}
               </Link>
-            )}
-
-            {/* Dashboard / Sign In 按钮及头像区 */}
-            <div className="flex items-center gap-2.5 sm:gap-3.5">
-              {authLoading ? (
-                <div className="h-8 w-16 animate-pulse rounded-[8px] bg-white/10" aria-hidden />
-              ) : signedIn ? (
-                // 已登录：Open Dashboard 升级为主行动实色按钮
-                <>
-                  <Link
-                    to={getDashboardEntryPath()}
-                    className="inline-flex h-8 select-none items-center justify-center rounded-[8px] bg-white px-3.5 text-xs font-bold text-oai-gray-950 shadow-sm transition-all duration-200 hover:bg-oai-gray-100 active:scale-[0.98]"
-                  >
-                    {copy("landing.v2.cta.primary")}
-                  </Link>
-                  {/* 已登录时，优雅挂载头像控件 */}
-                  <InsforgeUserHeaderControls />
-                </>
-              ) : (
-                // 未登录：Sign In 展示为主行动实色按钮，点击唤起 Modal
-                <button
-                  type="button"
-                  onClick={openLoginModal}
-                  className="inline-flex h-8 min-w-[80px] select-none items-center justify-center rounded-[8px] bg-white px-3.5 text-xs font-bold text-oai-gray-950 shadow-sm transition-all duration-200 hover:bg-oai-gray-100 active:scale-[0.98]"
-                >
-                  {copy("header.auth.sign_in_aria")}
-                </button>
-              )}
             </div>
           </div>
         </div>
@@ -148,8 +96,6 @@ export function MarketingLanding({
           onCopyInstallCommand={onCopyInstallCommand}
           githubLabel={githubLabel}
         />
-        {/* Show the product first (capabilities + screenshot), enumerate the
-            supported agents, THEN explain the mechanism. */}
         <CapabilitiesSection
           copy={copy}
           animate={animate}
@@ -159,13 +105,6 @@ export function MarketingLanding({
         <ToolsStrip copy={copy} animate={animate} />
         <HowItWorksSection copy={copy} animate={animate} />
         <PrivacySection copy={copy} animate={animate} />
-        <LeaderboardSection
-          copy={copy}
-          animate={animate}
-          stats={stats}
-          tokenFallback={tokenFallback}
-          devsFallback={devsFallback}
-        />
         <DownloadSection
           copy={copy}
           animate={animate}

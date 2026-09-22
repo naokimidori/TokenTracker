@@ -1,12 +1,25 @@
  <div align="center">
 
-# Token Tracker
+# Token Tracker (Simplified Fork)
+
+> [!NOTE]
+> **关于此 Fork 版本 (About this Fork)**:
+> 本项目 Fork 自上游原始开源项目 [xiufengsun/TokenTracker](https://github.com/xiufengsun/TokenTracker)。非常感谢原作者的出色工作！
+> 
+> 为了让工具更加纯粹、专注于本地 AI 工具用量跟踪与成本分析，本 Fork 版本对原有功能进行了深度精简与优化：
+> - **移除桌宠系统（Desktop Pet）**：移除桌面宠物浮窗、动作帧与相关资产，降低系统资源开销。
+> - **移除成就系统（Achievements）**：移除成就徽章及相关计算逻辑。
+> - **移除排行榜（Leaderboard）**：移除社区排行与公开主页模块。
+> - **移除云端账户与登录（Account & Cloud Sync）**：去除 InsForge 账号体系、登录弹窗、设备码绑定与云端同步，实现真正的 100% 纯本地离线运行，保障数据私密性。
+> - **移除推广引导**：移除各界面的 GitHub Stars 推广弹窗与引流元素。
+> - **稳定性修复**：修复了 macOS 原生菜单栏 App 在更新小组件快照时的并发栈崩溃问题，确保菜单栏常驻极其稳定。
+> - **完整保留**：保留全部 39 款 AI 编程工具的本地用量统计、成本核算、模型明细、本地 Dashboard 以及 macOS 菜单栏 / Windows 系统托盘核心体验。
 
 **English** · [简体中文](./README.zh-CN.md) · [日本語](./README.ja.md) · [한국어](./README.ko.md) · [Deutsch](./README.de.md)
 
-### Track every AI token — then bring your usage to life
+### Track every AI token — accurate, private & local-first
 
-An accurate, local-first token usage and cost dashboard for **39 AI coding tools** — plus a desktop pet, **4 native widgets**, and **15 achievement tracks**. No cloud account, no API keys, no setup.
+An accurate, 100% local-first token usage and cost dashboard for **39 AI coding tools** — with native menu bar/system tray integration. No cloud account, no API keys, no network dependencies.
 
 [![npm version](https://img.shields.io/npm/v/tokentracker-cli.svg?color=blue)](https://www.npmjs.com/package/tokentracker-cli)
 [![npm downloads](https://img.shields.io/npm/dm/tokentracker-cli.svg?color=brightgreen)](https://www.npmjs.com/package/tokentracker-cli)

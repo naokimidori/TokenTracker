@@ -1245,10 +1245,6 @@ final class StatusBarController: NSObject {
         aboutItem.target = self
         menu.addItem(aboutItem)
 
-        let starItem = NSMenuItem(title: Strings.menuStarOnGitHub, action: #selector(openGitHub), keyEquivalent: "")
-        starItem.target = self
-        menu.addItem(starItem)
-
         menu.delegate = self
 
         menu.addItem(.separator())
@@ -1326,12 +1322,6 @@ final class StatusBarController: NSObject {
 
     @objc private func checkForUpdates() {
         UpdateChecker.shared.check(silent: false)
-    }
-
-    @objc private func openGitHub() {
-        if let url = URL(string: "https://github.com/xiufengsun/TokenTracker") {
-            NSWorkspace.shared.open(url)
-        }
     }
 
     @objc private func openAbout() {
