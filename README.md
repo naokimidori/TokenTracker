@@ -4,8 +4,7 @@
 
 > **About this Fork**  
 > This project is a streamlined fork of the upstream project [xiufengsun/TokenTracker](https://github.com/xiufengsun/TokenTracker). Huge thanks to the original author for the wonderful foundation.  
-> 
-> To provide a cleaner, distraction-free, and privacy-first experience for developers, this fork has undergone a complete cleanup:
+> This fork includes the following adjustments:
 > - **Removed non-essential features**: Removed Desktop Pet, Achievements & Badges, Leaderboard & Public Profiles, Cloud Accounts, and Cloud Sync. Stripped all promotional ads and Star history trackers.
 > - **100% Local & Offline**: No sign-ups, no logins, no cloud backend required. All token parsing, aggregation, and cost analysis happen strictly on your machine.
 > - **Stability Fix**: Fixed a Swift concurrency task deallocation crash in the native macOS Menu Bar app during widget snapshot updates, ensuring robust, persistent background operation.
