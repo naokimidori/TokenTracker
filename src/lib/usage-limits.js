@@ -3663,9 +3663,22 @@ async function fetchAntigravityLimits({
   }
 }
 
+const TITLE_CASE_ACRONYMS = {
+  ai: "AI",
+  api: "API",
+  ui: "UI",
+  url: "URL",
+  sdk: "SDK",
+  cli: "CLI",
+};
+
 function toTitleCase(s) {
   return s.split(/\s+/).filter(Boolean)
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
+    .map((w) => {
+      const lower = w.toLowerCase();
+      if (TITLE_CASE_ACRONYMS[lower]) return TITLE_CASE_ACRONYMS[lower];
+      return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+    }).join(" ");
 }
 
 // Normalize a plan tier name: free/empty/placeholder -> null; otherwise strip the

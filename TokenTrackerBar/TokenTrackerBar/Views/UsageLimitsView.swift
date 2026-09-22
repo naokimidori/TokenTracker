@@ -68,7 +68,13 @@ struct UsageLimitsView: View {
 
     /// Append the plan tier to the provider name when known, e.g. "Claude Max".
     private func planTitle(_ base: String, _ label: String?) -> String {
-        label.map { "\(base) \($0)" } ?? base
+        guard let label else { return base }
+        let formattedLabel = label.replacingOccurrences(
+            of: "\\bAi\\b",
+            with: "AI",
+            options: .regularExpression
+        )
+        return "\(base) \(formattedLabel)"
     }
 
     private var subscriptionByProvider: [String: SubscriptionRecord] {

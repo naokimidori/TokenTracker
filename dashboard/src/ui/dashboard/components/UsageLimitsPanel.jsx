@@ -711,7 +711,8 @@ function renderProviderGroup(id, data, mode, expanded, onToggle, subscription = 
   }
 
   const baseName = limitProviderName(id);
-  const title = data.plan_label ? `${baseName} ${data.plan_label}` : baseName;
+  const formattedPlanLabel = data.plan_label ? data.plan_label.replace(/\bAi\b/g, "AI") : null;
+  const title = formattedPlanLabel ? `${baseName} ${formattedPlanLabel}` : baseName;
   let badge = null;
   // Reauth is more actionable than a cached/live freshness badge: the bars
   // will not move again until the user signs in, even if a disk snapshot

@@ -4468,6 +4468,12 @@ describe("normalizePlanLabel", () => {
   it("returns null when the tier is just the brand placeholder", () => {
     assert.equal(normalizePlanLabel("Kiro", "Kiro"), null);
   });
+
+  it("preserves acronyms such as AI and Pro in plan labels", () => {
+    assert.equal(normalizePlanLabel("google ai pro", "Antigravity"), "Google AI Pro");
+    assert.equal(normalizePlanLabel("AI Pro", "Antigravity"), "AI Pro");
+    assert.equal(normalizePlanLabel("Google AI Pro", "Antigravity"), "Google AI Pro");
+  });
 });
 
 describe("getUsageLimits plan_label", () => {

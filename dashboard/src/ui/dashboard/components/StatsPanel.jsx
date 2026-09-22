@@ -15,7 +15,10 @@ function toTitleWords(value) {
   return normalized
     .split(/[_\-\s]+/)
     .filter(Boolean)
-    .map((token) => token.slice(0, 1).toUpperCase() + token.slice(1).toLowerCase())
+    .map((token) => {
+      if (token.toLowerCase() === "ai") return "AI";
+      return token.slice(0, 1).toUpperCase() + token.slice(1).toLowerCase();
+    })
     .join(" ");
 }
 
