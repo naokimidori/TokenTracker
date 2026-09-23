@@ -677,6 +677,13 @@ function aggregateHourlyByDay(rows, dayKey, timeZoneContext) {
     }
     const model = row.model || "unknown";
     bucket.models[model] = (bucket.models[model] || 0) + (row.total_tokens || 0);
+
+    // 聚合当前小时各提供商（Source/Provider）Token 用量
+    if (!bucket.sources) {
+      bucket.sources = {};
+    }
+    const sourceKey = String(row.source || "unknown").toLowerCase();
+    bucket.sources[sourceKey] = (bucket.sources[sourceKey] || 0) + (row.total_tokens || 0);
   }
   return Array.from(byHour.values()).sort((a, b) => a.hour.localeCompare(b.hour));
 }

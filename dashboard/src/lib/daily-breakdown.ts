@@ -41,13 +41,29 @@ export function buildDailyBreakdownRange({
   return { from: formatDateUTC(start), to: formatDateUTC(end) };
 }
 
+function hasActualUsage(row: DailyBreakdownRow): boolean {
+  if (row?.missing || row?.future) return false;
+  const totalTokens = Number(row?.total_tokens ?? 0);
+  const billableTokens = Number(row?.billable_total_tokens ?? 0);
+  const inputTokens = Number(row?.input_tokens ?? 0);
+  const outputTokens = Number(row?.output_tokens ?? 0);
+  const conversationCount = Number(row?.conversation_count ?? 0);
+  return (
+    totalTokens > 0 ||
+    billableTokens > 0 ||
+    inputTokens > 0 ||
+    outputTokens > 0 ||
+    conversationCount > 0
+  );
+}
+
 export function selectDailyBreakdownRows(
   rows: DailyBreakdownRow[] | null | undefined,
   { period }: { period?: string } = {},
 ) {
-  const visible = (Array.isArray(rows) ? rows : []).filter((row) => !row?.future && row?.day);
-  const candidates = period === "total"
-    ? visible.filter((row) => !row?.missing)
-    : visible;
-  return candidates.slice(-30);
+  const list = Array.isArray(rows) ? rows : [];
+  const validRows = list.filter(
+    (row) => Boolean(row?.day) && !row?.future && !row?.missing && hasActualUsage(row),
+  );
+  return validRows.slice(-30);
 }

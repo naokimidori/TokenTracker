@@ -65,10 +65,11 @@ export const CostAnalysisModal = React.memo(function CostAnalysisModal({
       .sort((a, b) => b.usdValue - a.usdValue);
   }, [fleetData, currency, rate]);
 
-  const totalLabel = useMemo(() => {
-    const totalUsd = normalizedFleet.reduce((acc, fleet) => acc + fleet.usdValue, 0);
-    return formatHeroTotal(totalUsd, currency, rate);
-  }, [normalizedFleet, currency, rate]);
+  const totalUsd = useMemo(() => {
+    return normalizedFleet.reduce((acc, fleet) => acc + fleet.usdValue, 0);
+  }, [normalizedFleet]);
+  const positiveTotalUsd = Math.max(totalUsd, 0);
+  const totalLabel = formatHeroTotal(totalUsd, currency, rate);
 
   return (
     <Dialog.Root
@@ -79,103 +80,108 @@ export const CostAnalysisModal = React.memo(function CostAnalysisModal({
     >
       <Dialog.Portal>
         <Dialog.Backdrop className="cost-modal-backdrop" data-cost-analysis-backdrop="true" />
-        <Dialog.Viewport className="fixed inset-0 z-[101] flex items-center justify-center p-4">
-          <Dialog.Popup className="cost-modal-popup relative w-full max-w-[460px] max-h-[calc(100vh-2rem)] flex flex-col rounded-2xl bg-white dark:bg-oai-gray-950 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.25)] dark:shadow-[0_20px_60px_-10px_rgba(0,0,0,0.65)] ring-1 ring-oai-gray-200 dark:ring-oai-gray-800 overflow-hidden">
-            <Dialog.Title
-              render={<h2 className="sr-only" />}
-            >
-              {copy("dashboard.cost_breakdown.title")}
-            </Dialog.Title>
-
-            <Dialog.Close
-              type="button"
-              className="absolute top-3 right-3 flex h-9 w-9 items-center justify-center rounded-md text-oai-gray-500 dark:text-oai-gray-400 hover:text-oai-gray-800 dark:hover:text-oai-gray-100 hover:bg-oai-gray-100 dark:hover:bg-oai-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-oai-brand/50 transition-colors z-10"
-              aria-label={copy("dashboard.cost_breakdown.close")}
-            >
-              <X size={16} strokeWidth={2} aria-hidden />
-            </Dialog.Close>
-
-            <div className="flex-1 min-h-0 overflow-y-auto oai-scrollbar">
-              <div className="px-3 py-6">
-                <p className="text-label uppercase tracking-[0.12em] text-oai-gray-500 dark:text-oai-gray-400 mb-2">
-                  {copy("dashboard.cost_breakdown.total_label")}
-                </p>
-                <p
-                  className="font-bold text-oai-brand tabular-nums tracking-tight leading-none mb-6"
-                  style={{ fontSize: "clamp(24px, 6.5vw, 32px)" }}
+        <Dialog.Viewport className="fixed inset-0 z-[101] flex items-end justify-center p-0 sm:items-center sm:p-5">
+          <Dialog.Popup className="cost-modal-popup relative flex max-h-[88dvh] w-full flex-col overflow-hidden rounded-t-[20px] border border-b-0 border-[var(--v3-border)] bg-[var(--v3-bg-surface)] shadow-2xl sm:max-h-[82vh] sm:max-w-[640px] sm:rounded-[20px] sm:border-b">
+            <div className="v3-sans-font shrink-0 border-b border-[var(--v3-border)] px-5 pb-5 pt-5 sm:px-6 sm:pb-6 sm:pt-6">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <Dialog.Title className="text-[18px] font-semibold leading-6 tracking-tight text-[var(--v3-text-primary)]">
+                    {copy("dashboard.cost_breakdown.title")}
+                  </Dialog.Title>
+                  <Dialog.Description className="mt-1 text-[12px] text-[var(--v3-text-secondary)]">
+                    {copy("dashboard.cost_breakdown.total_label")}
+                  </Dialog.Description>
+                </div>
+                <Dialog.Close
+                  type="button"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-transparent text-[var(--v3-text-secondary)] transition-colors hover:border-[var(--v3-border)] hover:bg-[var(--v3-bg-elevated)] hover:text-[var(--v3-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--v3-emerald)]/50"
+                  aria-label={copy("dashboard.cost_breakdown.close")}
                 >
-                  {totalLabel}
-                </p>
+                  <X className="h-[18px] w-[18px] stroke-[1.8]" aria-hidden="true" />
+                </Dialog.Close>
+              </div>
+              <p className="mt-5 text-[40px] font-semibold leading-none text-[var(--v3-emerald)] v3-display-num sm:text-[46px]">
+                {totalLabel}
+              </p>
+            </div>
 
-                {normalizedFleet.length === 0 ? (
-                  <p className="text-body-sm text-oai-gray-500 dark:text-oai-gray-400">
-                    {copy("dashboard.cost_breakdown.empty")}
-                  </p>
-                ) : (
-                  <div role="table" aria-label={copy("dashboard.cost_breakdown.title")}>
-                  <div
-                    role="row"
-                    className="flex items-center justify-between gap-4 py-2 mb-2 border-b border-oai-gray-200 dark:border-oai-gray-800 text-label uppercase text-oai-gray-500 dark:text-oai-gray-400"
-                  >
-                    <span role="columnheader">{copy("dashboard.cost_breakdown.model_column")}</span>
-                    <span role="columnheader">{copy("dashboard.cost_breakdown.cost_column")}</span>
+            <div
+              role={normalizedFleet.length > 0 ? "table" : undefined}
+              aria-label={normalizedFleet.length > 0 ? copy("dashboard.cost_breakdown.title") : undefined}
+              className="min-h-0 flex-1 overflow-y-auto overscroll-contain oai-scrollbar"
+            >
+              {normalizedFleet.length === 0 ? (
+                <div className="flex min-h-[180px] items-center justify-center px-6 py-10 text-center text-[13px] text-[var(--v3-text-secondary)]">
+                  {copy("dashboard.cost_breakdown.empty")}
+                </div>
+              ) : (
+                <>
+                  <div role="rowgroup" className="sticky top-0 z-10 border-b border-[var(--v3-border)] bg-[var(--v3-bg-elevated)] px-5 py-2 text-[11px] font-semibold text-[var(--v3-text-secondary)] sm:px-6">
+                    <div role="row" className="grid grid-cols-[minmax(0,1fr)_104px] gap-4">
+                      <span role="columnheader">{copy("dashboard.cost_breakdown.model_column")}</span>
+                      <span role="columnheader" className="text-right">{copy("dashboard.cost_breakdown.cost_column")}</span>
+                    </div>
                   </div>
-
+                  <div className="divide-y divide-[var(--v3-border)]">
                   {normalizedFleet.map((fleet, index) => {
                     const rowGroupId = `fleet-${index}`;
+                    const share = positiveTotalUsd ? (fleet.usdValue / positiveTotalUsd) * 100 : 0;
                     return (
                       <div
                         key={`${fleet.label}-${index}`}
                         role="rowgroup"
                         aria-labelledby={rowGroupId}
-                        className={index > 0 ? "mt-5" : "mt-2"}
+                        className="px-5 py-4 sm:px-6 sm:py-5"
                       >
-                        <div
-                          role="row"
-                          className="flex items-center justify-between gap-4 py-2"
-                        >
+                        <div role="row" className="grid grid-cols-[minmax(0,1fr)_104px] items-baseline gap-4">
                           <span
                             id={rowGroupId}
                             role="rowheader"
-                            className="flex-1 min-w-0 text-body-sm font-semibold text-oai-black dark:text-oai-white truncate leading-none"
+                            className="min-w-0 truncate text-[13px] font-semibold tracking-[0.02em] text-[var(--v3-text-primary)]"
+                            title={fleet.label}
                           >
                             {fleet.label}
                           </span>
-                          <span
-                            role="cell"
-                            className="shrink-0 text-body-sm font-semibold text-oai-black dark:text-oai-white tabular-nums leading-none"
-                          >
+                          <span role="cell" className="text-right text-[15px] font-semibold text-[var(--v3-text-primary)] v3-mono-num">
                             {fleet.costLabel || "—"}
                           </span>
                         </div>
 
-                        {fleet.models.map((model, mi) => (
+                        <div className="mt-2 h-1 overflow-hidden rounded-full bg-[var(--v3-bg-elevated)]" aria-hidden="true">
                           <div
-                            key={model.id || `${model.name}-${mi}`}
-                            role="row"
-                            className="flex items-center justify-between gap-4 py-[5px]"
-                          >
-                            <span
-                              role="cell"
-                              className="flex-1 min-w-0 text-caption text-oai-gray-500 dark:text-oai-gray-400 truncate leading-none"
-                              title={model.name}
-                            >
-                              {model.name}
-                            </span>
-                            <span
-                              role="cell"
-                              className="shrink-0 text-caption text-oai-gray-700 dark:text-oai-gray-300 tabular-nums leading-none"
-                            >
-                              {model.costLabel || ""}
-                            </span>
+                            className={`h-full rounded-full ${index === 0 ? "bg-[var(--v3-emerald)]" : "bg-[var(--v3-blue)]"}`}
+                            style={{ width: `${Math.min(100, Math.max(share, 0))}%` }}
+                          />
+                        </div>
+
+                        {Boolean(fleet.models.length) && (
+                          <div className="mt-3 space-y-0.5 border-l border-[var(--v3-border)] pl-3">
+                            {fleet.models.map((model, mi) => (
+                              <div
+                                key={model.id || `${model.name}-${mi}`}
+                                role="row"
+                                className="grid grid-cols-[minmax(0,1fr)_104px] items-baseline gap-4 py-1.5"
+                              >
+                                <span
+                                  role="cell"
+                                  className="min-w-0 truncate font-mono text-[12px] text-[var(--v3-text-secondary)]"
+                                  title={model.name}
+                                >
+                                  {model.name}
+                                </span>
+                                <span role="cell" className="text-right text-[12px] font-medium text-[var(--v3-text-secondary)] v3-mono-num">
+                                  {model.costLabel || ""}
+                                </span>
+                              </div>
+                            ))}
                           </div>
-                        ))}
+                        )}
                       </div>
                     );
                   })}
                   </div>
-                )}
-              </div>
+                </>
+              )}
             </div>
           </Dialog.Popup>
         </Dialog.Viewport>

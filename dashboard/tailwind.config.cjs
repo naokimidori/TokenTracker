@@ -7,6 +7,9 @@ module.exports = {
   theme: {
     extend: {
       screens: {
+        // Dashboard Hero switches back to its three-column desktop layout
+        // before the default 1280px xl breakpoint (native window is 1200px).
+        hero: "1180px",
         // Viewport-height gates for vertically-anchored layouts (marketing
         // hero): default styles fit short laptop screens (13" MacBook Air
         // ≈ 800px-high viewport); scale the vertical rhythm up only when

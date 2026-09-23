@@ -1651,3 +1651,46 @@ limits.devin.setupHint.subtitle,ui,LimitsPage,UsageLimitsPanel,devin_hint_subtit
 limits.devin.setupHint.step1,ui,LimitsPage,UsageLimitsPanel,devin_hint_step1,"Install the Devin CLI and sign in with the command below — TokenTracker picks it up with no restart.",,active
 limits.devin.setupHint.note,ui,LimitsPage,UsageLimitsPanel,devin_hint_note,"Refresh this page after signing in. TokenTracker sends the saved session token only to Devin's official quota endpoint.",,active
 limits.devin.setupHint.snippet_login,ui,LimitsPage,UsageLimitsPanel,devin_hint_snippet_login,"devin auth login",,active
+settings.menubar.about,ui,SettingsPage,MenuBarSection,about,"About",,active
+dashboard.v3.title,ui,DashboardPage,DashboardToolbar,title,"Usage Overview",,active
+dashboard.v3.subtitle,ui,DashboardPage,DashboardToolbar,subtitle,"Quickly review today's AI usage, compare providers and models, and inspect daily details.",,active
+dashboard.v3.just_synced,ui,DashboardPage,DashboardToolbar,just_synced,"Just synced",,active
+dashboard.v3.share,ui,DashboardPage,DashboardToolbar,share,"Share",,active
+dashboard.v3.refresh,ui,DashboardPage,DashboardToolbar,refresh,"Refresh",,active
+dashboard.v3.token_total,ui,DashboardPage,DashboardHero,token_total,"TOTAL TOKENS",,active
+dashboard.v3.vs_yesterday,ui,DashboardPage,DashboardHero,vs_yesterday,"vs yesterday",,active
+dashboard.v3.hours_trend,ui,DashboardPage,DashboardHero,hours_trend,"24h Token Usage",,active
+dashboard.v3.provider_share,ui,DashboardPage,DashboardHero,provider_share,"Provider Share",,active
+dashboard.v3.model_ranking,ui,DashboardPage,DashboardHero,model_ranking,"Model Ranking",,active
+dashboard.v3.metric_7d,ui,DashboardPage,DashboardMetricTrack,metric_7d,"Last 7 days usage",,active
+dashboard.v3.metric_30d,ui,DashboardPage,DashboardMetricTrack,metric_30d,"Last 30 days usage",,active
+dashboard.v3.metric_daily_avg,ui,DashboardPage,DashboardMetricTrack,metric_daily_avg,"Active-day average",,active
+dashboard.v3.metric_conversations,ui,DashboardPage,DashboardMetricTrack,metric_conversations,"Total conversations",,active
+dashboard.v3.activity_title,ui,DashboardPage,DashboardActivityBand,activity_title,"Activity",,active
+dashboard.v3.activity_days,ui,DashboardPage,DashboardActivityBand,activity_days,"Active {{days}} days in past 52 weeks",,active
+dashboard.v3.activity_less,ui,DashboardPage,DashboardActivityBand,activity_less,"Less",,active
+dashboard.v3.activity_more,ui,DashboardPage,DashboardActivityBand,activity_more,"More",,active
+dashboard.v3.top_active_tools,ui,DashboardPage,DashboardActivityBand,top_active_tools,"Top Active Tools",,active
+dashboard.v3.daily_details,ui,DashboardPage,DashboardDataDetails,daily_details,"Daily Breakdown",,active
+dashboard.v3.project_usage,ui,DashboardPage,DashboardDataDetails,project_usage,"Project Usage",,active
+dashboard.v3.col_date,ui,DashboardPage,DashboardDataDetails,col_date,"Date",,active
+dashboard.v3.col_total,ui,DashboardPage,DashboardDataDetails,col_total,"Total",,active
+dashboard.v3.col_input,ui,DashboardPage,DashboardDataDetails,col_input,"Input",,active
+dashboard.v3.col_output,ui,DashboardPage,DashboardDataDetails,col_output,"Output",,active
+dashboard.v3.col_cache,ui,DashboardPage,DashboardDataDetails,col_cache,"Cache",,active
+dashboard.v3.col_reasoning,ui,DashboardPage,DashboardDataDetails,col_reasoning,"Reasoning",,active
+dashboard.v3.col_conversations,ui,DashboardPage,DashboardDataDetails,col_conversations,"Conversations",,active
+nav.brand_name,ui,Sidebar,Sidebar,brand_name,"TokenTracker",,active
+nav.theme_dark,ui,Sidebar,Sidebar,theme_dark,"Night Mode",,active
+nav.theme_light,ui,Sidebar,Sidebar,theme_light,"Day Mode",,active
+dashboard.v3.view_details,ui,DashboardPage,DashboardHero,view_details,"View Details",,active
+dashboard.v3.model_details_title,ui,DashboardPage,ModelRankingModal,model_details_title,"Model Usage Details",,active
+dashboard.v3.model_details_subtitle,ui,DashboardPage,ModelRankingModal,model_details_subtitle,"All active models in current period",,active
+dashboard.v3.model_count,ui,DashboardPage,ModelRankingModal,model_count,"{{count}} Models Total",,active
+dashboard.v3.col_rank,ui,DashboardPage,ModelRankingModal,col_rank,"Rank",,active
+dashboard.v3.col_model,ui,DashboardPage,ModelRankingModal,col_model,"Model",,active
+dashboard.v3.col_tokens,ui,DashboardPage,ModelRankingModal,col_tokens,"Tokens",,active
+dashboard.v3.col_share,ui,DashboardPage,ModelRankingModal,col_share,"Share",,active
+dashboard.v3.close,ui,DashboardPage,ModelRankingModal,close,"Close",,active
+dashboard.v3.model_empty,ui,DashboardPage,ModelRankingModal,model_empty,"No active models found",,active
+dashboard.v3.total_usage_prefix,ui,DashboardPage,ModelRankingModal,total_usage_prefix,"Total Tokens",,active

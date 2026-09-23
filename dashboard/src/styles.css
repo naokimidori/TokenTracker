@@ -9,6 +9,21 @@
      TokenTracker Design System - Brand Colors
      ======================================== */
 
+  /* Dashboard V3 设计令牌 (浅色模式) */
+  --v3-bg-page: #F5F6F4;
+  --v3-bg-sidebar: #FAFBF9;
+  --v3-bg-surface: #FFFFFF;
+  --v3-bg-elevated: #F0F2EF;
+  --v3-border: #DDE2DE;
+  --v3-border-light: rgba(221, 226, 222, 0.7);
+  --v3-text-primary: #151918;
+  --v3-text-secondary: #69726E;
+  --v3-emerald: #0FAE7B;
+  --v3-emerald-subtle: rgba(15, 174, 123, 0.12);
+  --v3-blue: #3478F6;
+  --v3-blue-subtle: rgba(52, 120, 246, 0.12);
+  --v3-cell-empty: #E7EBE7;
+
   /* Colors - Primary (using OKLCH for perceptual uniformity) */
   --oai-black: #0a0a0a;
   --oai-white: #fafafa;
@@ -141,6 +156,21 @@
 
 :root.dark {
   color-scheme: dark;
+
+  /* Dashboard V3 设计令牌 (深色模式) */
+  --v3-bg-page: #090B0C;
+  --v3-bg-sidebar: #0E1113;
+  --v3-bg-surface: #121619;
+  --v3-bg-elevated: #181D20;
+  --v3-border: #283036;
+  --v3-border-light: rgba(40, 48, 54, 0.8);
+  --v3-text-primary: #F5F7F7;
+  --v3-text-secondary: #8F999F;
+  --v3-emerald: #24D19C;
+  --v3-emerald-subtle: rgba(36, 209, 156, 0.15);
+  --v3-blue: #4E8CFF;
+  --v3-blue-subtle: rgba(78, 140, 255, 0.15);
+  --v3-cell-empty: #181D20;
 
   /* Colors - Primary (swapped for dark mode) */
   --oai-black: #fafafa;
@@ -965,4 +995,93 @@ html.native-windows-app .tt-native-glass-shell aside[data-native-sidebar] {
   :root.dark .oai-card--accent {
     background: linear-gradient(180deg, oklch(28% 0.004 145) 0%, oklch(24% 0.003 145) 100%);
   }
+}
+
+/* ========================================
+   Dashboard V3 重构专属样式规范
+   ======================================== */
+
+.v3-mono-num {
+  font-family: "Geist Mono", "Geist Mono Fallback", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  letter-spacing: -0.02em;
+}
+
+.v3-sans-font {
+  font-family: "Geist Sans", var(--oai-font-sans);
+}
+
+.v3-display-num {
+  font-family: "Geist Sans", var(--oai-font-sans);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  letter-spacing: -0.035em;
+}
+
+.v3-container {
+  background-color: var(--v3-bg-page);
+  color: var(--v3-text-primary);
+}
+
+.v3-surface {
+  background-color: var(--v3-bg-surface);
+  border: 1px solid var(--v3-border);
+}
+
+.v3-elevated {
+  background-color: var(--v3-bg-elevated);
+  border: 1px solid var(--v3-border);
+}
+
+.v3-text-dim {
+  color: var(--v3-text-secondary);
+}
+
+.v3-emerald {
+  color: var(--v3-emerald);
+}
+
+.v3-blue {
+  color: var(--v3-blue);
+}
+
+.v3-level-0 {
+  background-color: var(--v3-cell-empty);
+}
+
+.v3-level-1 {
+  background-color: #A5EAD3;
+}
+
+:root.dark .v3-level-1,
+html.dark .v3-level-1 {
+  background-color: #094C38;
+}
+
+.v3-level-2 {
+  background-color: #5CD4AB;
+}
+
+:root.dark .v3-level-2,
+html.dark .v3-level-2 {
+  background-color: #0F7D5C;
+}
+
+.v3-level-3 {
+  background-color: #0FAE7B;
+}
+
+:root.dark .v3-level-3,
+html.dark .v3-level-3 {
+  background-color: #19AF82;
+}
+
+.v3-level-4 {
+  background-color: #08855D;
+}
+
+:root.dark .v3-level-4,
+html.dark .v3-level-4 {
+  background-color: #24D19C;
 }

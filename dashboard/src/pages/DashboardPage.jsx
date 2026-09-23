@@ -350,7 +350,7 @@ export function DashboardPage({
   const [customFrom, setCustomFrom] = useState(null);
   const [customTo, setCustomTo] = useState(null);
   const [customRangeOpen, setCustomRangeOpen] = useState(false);
-  const period = screenshotMode ? "total" : selectedPeriod;
+  const period = screenshotMode ? "day" : selectedPeriod;
   const range = useMemo(() => {
     if (period === "custom" && customFrom && customTo) {
       return { from: customFrom, to: customTo };
@@ -1262,6 +1262,11 @@ export function DashboardPage({
     () => buildTopModels(modelBreakdown, { limit: 3, copyFn: copy }),
     [modelBreakdown],
   );
+  // 计算当前周期全量活跃模型排行（用于详情弹窗展示）
+  const allModels = useMemo(
+    () => buildTopModels(modelBreakdown, { limit: 100, copyFn: copy }),
+    [modelBreakdown],
+  );
 
   const openCostModal = useCallback(() => setCostModalOpen(true), []);
   const closeCostModal = useCallback(() => setCostModalOpen(false), []);
@@ -1366,6 +1371,7 @@ export function DashboardPage({
       setProjectUsageLimit={setProjectUsageLimit}
       projectDetailQuery={{ from, to, timeZone, tzOffsetMinutes }}
       topModels={topModels}
+      allModels={allModels}
       signedIn={signedIn}
       publicMode={publicMode}
       isLocalMode={isLocalMode}
@@ -1387,13 +1393,11 @@ export function DashboardPage({
       period={period}
       trendTimeZoneLabel={trendTimeZoneLabel}
       activityHeatmapBlock={activityHeatmapBlock}
+      heatmap={heatmap}
+      heatmapDaily={heatmapDaily}
+      heatmapLoading={heatmapLoading}
       periodsForDisplay={periodsForDisplay}
       setSelectedPeriod={handlePeriodChange}
-      customFrom={customFrom}
-      customTo={customTo}
-      onCustomRangeApply={handleCustomRangeApply}
-      customRangeOpen={customRangeOpen}
-      onCustomRangeOpenChange={handleCustomRangeOpenChange}
       metricsRows={metricsRows}
       summaryLabel={summaryLabel}
       summaryValue={summaryValue}

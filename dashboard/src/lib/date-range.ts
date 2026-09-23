@@ -65,13 +65,10 @@ export function getRangeForPeriod(
   }
 
   if (period === "week") {
+    // 近 7 日周期：包含今天及过去的 6 天（共 7 天）
     const fromDate = new Date(today);
-    const day = fromDate.getUTCDay();
-    const offset = (day + 6) % 7; // Monday start
-    fromDate.setUTCDate(fromDate.getUTCDate() - offset);
-    const toDate = new Date(fromDate);
-    toDate.setUTCDate(toDate.getUTCDate() + 6);
-    return { from: formatDateUTC(fromDate), to: formatDateUTC(toDate) };
+    fromDate.setUTCDate(fromDate.getUTCDate() - 6);
+    return { from: formatDateUTC(fromDate), to: formatDateUTC(today) };
   }
 
   if (period === "month") {

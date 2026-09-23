@@ -283,16 +283,22 @@ function SidebarBody({
   return (
     <>
       {/* Top: identity only — full-width, aligned with nav items (px-2) */}
-      <div className={cn("px-2 pt-2 pb-2", collapsed && "flex justify-center")}>
-        {showCloseButton ? (
-          <div className="flex items-center gap-2">
-            <div className="flex-1 min-w-0">
-              <InsforgeUserHeaderControls
-                variant="sidebar"
-                collapsed={collapsed}
-                onAfterAction={onItemClick}
-              />
-            </div>
+      <div className={cn("px-2 pt-3 pb-2", collapsed && "flex justify-center")}>
+        <div className={cn("flex items-center w-full", collapsed ? "justify-center" : "justify-between")}>
+          <Link
+            to="/dashboard"
+            onClick={onItemClick}
+            aria-label={copy("nav.brand_name") || "TokenTracker"}
+            className="flex items-center gap-2.5 no-underline group select-none"
+          >
+            <img src="/app-icon.png" alt="" width={24} height={24} className="h-6 w-6 shrink-0 rounded-md" />
+            {!collapsed && (
+              <span className="text-[14px] font-bold tracking-tight text-[var(--v3-text-primary)]">
+                {copy("nav.brand_name") || "TokenTracker"}
+              </span>
+            )}
+          </Link>
+          {showCloseButton && (
             <button
               ref={closeButtonRef}
               type="button"
@@ -303,14 +309,8 @@ function SidebarBody({
             >
               <X className="h-4 w-4" strokeWidth={1.75} aria-hidden />
             </button>
-          </div>
-        ) : (
-          <InsforgeUserHeaderControls
-            variant="sidebar"
-            collapsed={collapsed}
-            onAfterAction={onItemClick}
-          />
-        )}
+          )}
+        </div>
       </div>
 
       {/* Nav */}
@@ -340,33 +340,54 @@ function SidebarBody({
         ))}
       </nav>
 
-      {/* Bottom: tiny utility row — theme (left) + star & collapse (right), aligned with nav px-2 */}
+      {/* Bottom: theme toggle + collapse */}
       <div
         className={cn(
           "flex items-center px-2 py-3",
-          collapsed ? "flex-col justify-center gap-2" : "justify-between gap-2",
+          collapsed ? "flex-col justify-center gap-2" : "justify-between gap-1",
         )}
       >
-        <ThemePill theme={theme} resolvedTheme={resolvedTheme} onSetTheme={setTheme} glassChrome={glassChrome} />
-        <div className="flex items-center gap-1.5">
-          {!showCloseButton && (
-            <button
-              type="button"
-              onClick={onToggleCollapsed}
-              aria-label={collapsed ? copy("nav.expand") : copy("nav.collapse")}
-              title={collapsed ? copy("nav.expand") : copy("nav.collapse")}
-              aria-expanded={!collapsed}
-              aria-controls="app-sidebar"
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-oai-gray-500 dark:text-oai-gray-500 hover:bg-oai-gray-200/60 dark:hover:bg-oai-gray-800 hover:text-oai-gray-900 dark:hover:text-oai-gray-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-oai-brand-500"
-            >
-              {collapsed ? (
-                <ChevronRight className="h-4 w-4" strokeWidth={1.75} aria-hidden />
-              ) : (
-                <ChevronLeft className="h-4 w-4" strokeWidth={1.75} aria-hidden />
-              )}
-            </button>
+        <button
+          type="button"
+          onClick={() => {
+            setTheme(resolvedTheme === "dark" ? "light" : "dark");
+          }}
+          title={
+            resolvedTheme === "dark"
+              ? copy("nav.theme_light") || "切换到浅色模式"
+              : copy("nav.theme_dark") || "切换到深色模式"
+          }
+          aria-label={
+            resolvedTheme === "dark"
+              ? copy("nav.theme_light") || "切换到浅色模式"
+              : copy("nav.theme_dark") || "切换到深色模式"
+          }
+          className="flex h-10 w-10 items-center justify-center rounded-lg text-oai-gray-600 dark:text-oai-gray-400 hover:bg-oai-gray-200/60 dark:hover:bg-oai-gray-800 hover:text-oai-black dark:hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-oai-brand-500"
+        >
+          {resolvedTheme === "dark" ? (
+            <Sun className="h-4 w-4 shrink-0" strokeWidth={1.75} aria-hidden="true" />
+          ) : (
+            <Moon className="h-4 w-4 shrink-0" strokeWidth={1.75} aria-hidden="true" />
           )}
-        </div>
+        </button>
+
+        {!showCloseButton && (
+          <button
+            type="button"
+            onClick={onToggleCollapsed}
+            aria-label={collapsed ? copy("nav.expand") : copy("nav.collapse")}
+            title={collapsed ? copy("nav.expand") : copy("nav.collapse")}
+            aria-expanded={!collapsed}
+            aria-controls="app-sidebar"
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-oai-gray-500 dark:text-oai-gray-500 hover:bg-oai-gray-200/60 dark:hover:bg-oai-gray-800 hover:text-oai-gray-900 dark:hover:text-oai-gray-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-oai-brand-500"
+          >
+            {collapsed ? (
+              <ChevronRight className="h-4 w-4" strokeWidth={1.75} aria-hidden />
+            ) : (
+              <ChevronLeft className="h-4 w-4" strokeWidth={1.75} aria-hidden />
+            )}
+          </button>
+        )}
       </div>
     </>
   );

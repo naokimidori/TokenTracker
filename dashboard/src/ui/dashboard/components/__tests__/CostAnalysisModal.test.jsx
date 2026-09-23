@@ -22,3 +22,18 @@ it("invokes onClose when clicking the backdrop", async () => {
 
   expect(onClose).toHaveBeenCalledTimes(1);
 });
+
+it("uses Geist Sans throughout the cost summary header", () => {
+  render(
+    <CostAnalysisModal
+      isOpen={true}
+      onClose={() => {}}
+      fleetData={[{ label: "CODEX", usd: 2323.71, models: [] }]}
+    />,
+  );
+
+  const header = document.querySelector(".cost-modal-popup")?.firstElementChild;
+  expect(header).toHaveClass("v3-sans-font");
+  expect(header.querySelector(".v3-display-num")).toHaveTextContent("2,323.71");
+  expect(header.querySelector(".v3-display-num")).not.toHaveClass("v3-mono-num");
+});

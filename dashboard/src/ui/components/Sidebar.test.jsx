@@ -26,6 +26,7 @@ const LABELS = {
   "nav.close_menu": "Close navigation menu",
   "nav.aside_label": "Main navigation",
   "nav.nav_label": "Primary navigation",
+  "nav.brand_name": "TokenTracker",
   "shared.github.star": "Star",
 };
 
@@ -90,6 +91,8 @@ describe("AppLayout sidebar controls", () => {
     renderLayout();
 
     const sidebar = screen.getByRole("complementary", { name: "Main navigation" });
+    const brand = screen.getByRole("link", { name: "TokenTracker" });
+    expect(brand.querySelector('img[src="/app-icon.png"]')).not.toBeNull();
     const collapseButton = screen.getByRole("button", { name: "Collapse sidebar" });
     expect(sidebar).toHaveAttribute("data-sidebar-state", "expanded");
     expect(collapseButton).toHaveAttribute("aria-expanded", "true");
@@ -98,12 +101,14 @@ describe("AppLayout sidebar controls", () => {
 
     expect(sidebar).toHaveAttribute("data-sidebar-state", "collapsed");
     expect(window.localStorage.getItem("tt.sidebarCollapsed")).toBe("1");
+    expect(brand.parentElement).toHaveClass("justify-center");
     expect(screen.getByRole("link", { name: "Usage" })).toHaveAttribute("aria-label", "Usage");
     expect(screen.getByRole("button", { name: "Expand sidebar" })).toHaveAttribute("aria-expanded", "false");
 
     await act(async () => user.click(screen.getByRole("button", { name: "Expand sidebar" })));
 
     expect(sidebar).toHaveAttribute("data-sidebar-state", "expanded");
+    expect(brand.parentElement).toHaveClass("justify-between");
     expect(window.localStorage.getItem("tt.sidebarCollapsed")).toBe("0");
   });
 

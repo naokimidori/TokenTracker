@@ -12,6 +12,7 @@ import "@fontsource/geist-mono/400.css";
 import "@fontsource/geist-mono/500.css";
 import "@fontsource/geist-mono/700.css";
 import "@fontsource/geist-mono/900.css";
+import "@fontsource/geist-sans/600.css";
 import "./styles.css";
 
 initAnalytics();

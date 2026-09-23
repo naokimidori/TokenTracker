@@ -1217,6 +1217,7 @@ export default defineConfig(({ mode }) => {
       localDataApiPlugin(),
     ],
     ...(Object.keys(define).length ? { define } : {}),
+
     build: {
       rollupOptions: {
         input: rollupInput,

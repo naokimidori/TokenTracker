@@ -43,34 +43,30 @@ const installStatusPath = path.join(
   "lib",
   "install-status.js",
 );
+const heroPath = path.join(
+  __dirname,
+  "..",
+  "dashboard",
+  "src",
+  "ui",
+  "dashboard",
+  "components",
+  "DashboardHero.jsx",
+);
 
 function readFile(filePath) {
   return fs.readFileSync(filePath, "utf8");
 }
 
-test("DashboardPage places TrendMonitor and heatmap in left column", () => {
+test("DashboardPage renders V3 continuous layout components", () => {
   const src = readFile(viewPath);
-  const leftRendererStart = src.indexOf("function renderLeftCard");
-  const rightRendererStart = src.indexOf("function renderRightCard", leftRendererStart + 1);
-  assert.ok(leftRendererStart !== -1, "expected left card renderer");
-  assert.ok(rightRendererStart !== -1, "expected right card renderer");
+  assert.ok(src.includes("<DashboardHero"), "expected DashboardHero in V3 layout");
+  assert.ok(src.includes("<DashboardMetricTrack"), "expected DashboardMetricTrack in V3 layout");
+  assert.ok(src.includes("<DashboardActivityBand"), "expected DashboardActivityBand in V3 layout");
+  assert.ok(src.includes("<DashboardDataDetails"), "expected DashboardDataDetails in V3 layout");
 
-  const leftRenderer = src.slice(leftRendererStart, rightRendererStart);
-  const trendIndex = leftRenderer.indexOf("<TrendMonitor");
-  const heatmapIndex = leftRenderer.indexOf("{activityHeatmapBlock}");
-  assert.ok(trendIndex !== -1, "expected TrendMonitor in left column");
-  assert.ok(heatmapIndex !== -1, "expected heatmap block in left column");
-});
-
-test("DashboardPage right column contains UsageOverview", () => {
-  const src = readFile(viewPath);
-  const rightRendererStart = src.indexOf("function renderRightCard");
-  const sortableRendererStart = src.indexOf("function renderSortableColumn", rightRendererStart + 1);
-  assert.ok(rightRendererStart !== -1, "expected right card renderer");
-  assert.ok(sortableRendererStart !== -1, "expected sortable column renderer");
-
-  const rightRenderer = src.slice(rightRendererStart, sortableRendererStart);
-  assert.ok(rightRenderer.includes("<UsageOverview"), "expected UsageOverview in right column");
+  const heroSrc = readFile(heroPath);
+  assert.ok(heroSrc.includes("<DashboardToolbar"), "expected DashboardToolbar embedded inside DashboardHero");
 });
 
 test("DataDetails project rows open the drill-down modal instead of navigating", () => {
@@ -142,19 +138,11 @@ test("DashboardPage wires install panel gating through helper", () => {
   assert.ok(viewSrc.includes('case "installCopy"'), "expected install panel card renderer");
 });
 
-test("DashboardView does not prune async quality-per-dollar while loading", () => {
+test("DashboardView wires Hero, activity band and details components", () => {
   const src = readFile(viewPath);
-  assert.match(
-    src,
-    /EMPTY_PRUNABLE_CARD_IDS\s*=\s*new Set\(\[\s*"macAppBanner",\s*"widgetOnboarding"\s*\]\)/,
-    "expected only permanently dismissible cards to be pruned when empty",
-  );
-  assert.ok(src.includes("if (!EMPTY_PRUNABLE_CARD_IDS.has(id)) return"));
-  assert.doesNotMatch(
-    src,
-    /EMPTY_PRUNABLE_CARD_IDS\s*=\s*new Set\([^)]*"qualityPerDollar"/,
-    "quality-per-dollar can be empty while async outcomes data loads",
-  );
+  assert.ok(src.includes("DashboardHero"), "expected DashboardHero");
+  assert.ok(src.includes("DashboardActivityBand"), "expected DashboardActivityBand");
+  assert.ok(src.includes("DashboardDataDetails"), "expected DashboardDataDetails");
 });
 
 test("DashboardPage only uses the full skeleton before dashboard content is first shown", () => {
@@ -193,10 +181,21 @@ test("copy registry removes unused install steps and range label", () => {
   }
 });
 
-test("DashboardPage lets TrendMonitor auto-size", () => {
-  const src = readFile(viewPath);
-  assert.ok(!src.includes('className="min-h-[240px]"'), "expected TrendMonitor min height removed");
-  assert.ok(src.includes("<TrendMonitor"), "expected TrendMonitor to be rendered");
+test("DashboardHero renders 24 hours trend and rankings", () => {
+  const heroPath = path.join(
+    __dirname,
+    "..",
+    "dashboard",
+    "src",
+    "ui",
+    "dashboard",
+    "components",
+    "DashboardHero.jsx",
+  );
+  const src = readFile(heroPath);
+  assert.ok(src.includes("hourlyData"), "expected hourlyData calculation in Hero");
+  assert.ok(src.includes("providerStats"), "expected providerStats in Hero");
+  assert.ok(src.includes("modelStats"), "expected modelStats in Hero");
 });
 
 test("TrendMonitor root does not force full height", () => {
@@ -248,4 +247,178 @@ test("DashboardPage removes the obsolete responsive summary format state", () =>
     src.includes("setTokenFormatMode("),
     "dashboard hero click must persist through the shared token format provider",
   );
+});
+
+test("DashboardMetricTrack removes conversationsValue === 1 special case and handles edge values", () => {
+  const metricTrackPath = path.join(
+    __dirname,
+    "..",
+    "dashboard",
+    "src",
+    "ui",
+    "dashboard",
+    "components",
+    "DashboardMetricTrack.jsx",
+  );
+  const src = readFile(metricTrackPath);
+  assert.ok(
+    !src.includes("conversationsValue === 1"),
+    "conversationsValue === 1 must not be treated as screenshot fallback",
+  );
+  assert.ok(
+    src.includes("AnimatedMetric"),
+    "expected AnimatedMetric integration in MetricTrack",
+  );
+});
+
+test("DashboardHero removes 75/25 artificial provider split", () => {
+  const heroPath = path.join(
+    __dirname,
+    "..",
+    "dashboard",
+    "src",
+    "ui",
+    "dashboard",
+    "components",
+    "DashboardHero.jsx",
+  );
+  const src = readFile(heroPath);
+  assert.ok(
+    !src.includes("agShare = 0.75"),
+    "DashboardHero must not fake 75% antigravity and 25% codex split",
+  );
+  assert.ok(
+    src.includes("AnimatedMetric"),
+    "expected AnimatedMetric integration in Hero",
+  );
+});
+
+test("DashboardDataDetails removes Math.random row keys and 0/1 row mock fallback", () => {
+  const dataDetailsPath = path.join(
+    __dirname,
+    "..",
+    "dashboard",
+    "src",
+    "ui",
+    "dashboard",
+    "components",
+    "DashboardDataDetails.jsx",
+  );
+  const src = readFile(dataDetailsPath);
+  assert.ok(!src.includes("Math.random()"), "row keys must be stable and deterministic");
+  assert.ok(
+    !src.includes("dailyBreakdownRows.length <= 1"),
+    "1 row must be rendered as valid user data, not fallback to baseline",
+  );
+});
+
+test("DashboardView wires real heatmap data to DashboardActivityBand", () => {
+  const viewSrc = readFile(viewPath);
+  assert.ok(
+    viewSrc.includes("heatmapData={heatmap}"),
+    "expected real heatmap data passed to DashboardActivityBand",
+  );
+});
+
+test("DashboardMetricTrack wires rolling last_7d, last_30d and avg_per_active_day", () => {
+  const metricTrackPath = path.join(
+    __dirname,
+    "..",
+    "dashboard",
+    "src",
+    "ui",
+    "dashboard",
+    "components",
+    "DashboardMetricTrack.jsx",
+  );
+  const src = readFile(metricTrackPath);
+  assert.ok(
+    src.includes("rollingUsage?.last_7d?.totals"),
+    "expected rollingUsage.last_7d.totals path for 7d metric",
+  );
+  assert.ok(
+    src.includes("rollingUsage?.last_30d?.totals"),
+    "expected rollingUsage.last_30d.totals path for 30d metric",
+  );
+  assert.ok(
+    src.includes("rollingUsage?.last_30d?.avg_per_active_day"),
+    "expected rollingUsage.last_30d.avg_per_active_day for daily avg metric",
+  );
+});
+
+test("DashboardView passes renderDailyBreakdownDate to DashboardDataDetails", () => {
+  const viewSrc = readFile(viewPath);
+  assert.ok(
+    viewSrc.includes("renderDailyBreakdownDate={renderDailyBreakdownDate}"),
+    "expected renderDailyBreakdownDate passed to DashboardDataDetails",
+  );
+});
+
+test("DashboardToolbar removes custom date, share button, and redundant overview title/sync dot", () => {
+  const toolbarPath = path.join(
+    __dirname,
+    "..",
+    "dashboard",
+    "src",
+    "ui",
+    "dashboard",
+    "components",
+    "DashboardToolbar.jsx",
+  );
+  const src = readFile(toolbarPath);
+  assert.ok(!src.includes('key: "custom"'), "custom date range must be removed");
+  assert.ok(!src.includes("handleShare"), "share button logic must be removed");
+  assert.ok(!src.includes("animate-ping"), "fake animate-ping green dot must be removed");
+  assert.ok(!src.includes("dashboard.v3.title"), "top title must be removed from toolbar");
+  assert.ok(!src.includes("dashboard.v3.just_synced"), "just synced indicator must be removed from toolbar");
+  assert.ok(!src.includes("dashboard.v3.subtitle"), "subtitle description must be removed from toolbar");
+});
+
+test("Sidebar theme toggle uses dynamic icon without static text", () => {
+  const sidebarPath = path.join(
+    __dirname,
+    "..",
+    "dashboard",
+    "src",
+    "ui",
+    "components",
+    "Sidebar.jsx",
+  );
+  const src = readFile(sidebarPath);
+  assert.ok(src.includes("<Sun"), "expected Sun icon in theme toggle");
+  assert.ok(src.includes("<Moon"), "expected Moon icon in theme toggle");
+  assert.ok(
+    !src.includes('{copy("nav.theme_dark") || "夜间模式"}</span>'),
+    "visible static text must be removed from sidebar theme button",
+  );
+});
+
+test("DashboardHero correctly calculates modelStats from topModels tokens/percent and supports providersLoading", () => {
+  const heroPath = path.join(
+    __dirname,
+    "..",
+    "dashboard",
+    "src",
+    "ui",
+    "dashboard",
+    "components",
+    "DashboardHero.jsx",
+  );
+  const heroSrc = readFile(heroPath);
+  assert.ok(heroSrc.includes("m.tokens ?? m.usage"), "expected topModels to read tokens field as fallback for usage");
+  assert.ok(heroSrc.includes("m.percent != null"), "expected topModels to support precalculated percent field");
+  assert.ok(heroSrc.includes("providersLoading"), "expected providersLoading support for model and provider stats");
+
+  const viewPath = path.join(
+    __dirname,
+    "..",
+    "dashboard",
+    "src",
+    "ui",
+    "dashboard",
+    "views",
+    "DashboardView.jsx",
+  );
+  const viewSrc = readFile(viewPath);
+  assert.ok(viewSrc.includes("providersLoading={providersLoading}"), "expected DashboardView to forward providersLoading to DashboardHero");
 });
