@@ -56,6 +56,20 @@
       "priority_multiplier": 2,
       "note": "Official Standard USD/MTok rates verified 2026-09-07: https://developers.openai.com/api/docs/models/gpt-6-astra. Requests above 272K input tokens use 2x input/cache and 1.5x output rates; computeRowCost applies this only to observed long-context request subsets. priority_multiplier is the Fast tier, whose published table (20/2/25/100 short, 40/4/50/150 long, verified 2026-09-12) is exactly 2x the Standard rate of the same context tier — it multiplies, it does not replace, the long-context premium. The 2.5x figure in the Codex speed docs is a subscription-credit rate and must not be used here. computeRowCost applies it only to observed priority request subsets; usage whose service tier the logs never recorded stays Standard. Cloud aggregates use Standard short-context estimates because they do not retain per-request context or service tier. Reasoning-effort suffixes use the same base rates."
     },
+    "gpt-6-sol": {
+      "input": 2,
+      "output": 10,
+      "cache_read": 0.2,
+      "cache_write": 2.5,
+      "note": "Official GPT-6 Sol standard pricing (released 2026-09-22): $2 input, $0.20 cached input (90% discount), $2.50 cache write, and $10 output per MTok. Requests above 272K input are repriced from their preserved per-request long-context subset. Codex emits gpt-6-sol plus reasoning-effort variants caught by fuzzy matching."
+    },
+    "gpt-6-luna": {
+      "input": 0.1,
+      "output": 0.5,
+      "cache_read": 0.01,
+      "cache_write": 0.125,
+      "note": "Official GPT-6 Luna standard pricing (released 2026-09-22): $0.10 input, $0.01 cached input (90% discount), $0.125 cache write, and $0.50 output per MTok. Codex emits gpt-6-luna plus reasoning-effort variants caught by fuzzy matching."
+    },
     "gpt-5.6-sol": {
       "input": 4,
       "output": 20,
@@ -505,6 +519,18 @@
     {
       "match": "gpt-6-astra",
       "ref": "gpt-6-astra"
+    },
+    {
+      "match": "gpt-6-sol",
+      "ref": "gpt-6-sol"
+    },
+    {
+      "match": "gpt-6-luna",
+      "ref": "gpt-6-luna"
+    },
+    {
+      "match": "gpt-6",
+      "ref": "gpt-6-sol"
     },
     {
       "match": "gpt-5.6-sol",

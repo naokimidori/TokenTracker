@@ -195,6 +195,8 @@ const MODEL_PRICING: Record<string, { input: number; output: number; cache_read:
   // Cloud buckets do not retain per-request context/service tier. Use the
   // standard short-context estimate; never infer long context from totals.
   "gpt-6-astra": { input: 10, output: 50, cache_read: 1, cache_write: 12.5 },
+  "gpt-6-sol": { input: 2, output: 10, cache_read: 0.2, cache_write: 2.5 },
+  "gpt-6-luna": { input: 0.1, output: 0.5, cache_read: 0.01, cache_write: 0.125 },
   "gpt-5-mini": { input: 0.25, output: 2, cache_read: 0.025 },
   "o3": { input: 2, output: 8, cache_read: 0.5 },
   // ── Google Gemini ──
@@ -412,6 +414,9 @@ function getModelPricing(model: string, source = "") {
   if (lower.includes("haiku")) return MODEL_PRICING["claude-haiku-4-5-20251001"];
   if (lower.includes("sonnet")) return MODEL_PRICING["claude-sonnet-4-6"];
   if (lower.includes("gpt-6-astra")) return MODEL_PRICING["gpt-6-astra"];
+  if (lower.includes("gpt-6-sol")) return MODEL_PRICING["gpt-6-sol"];
+  if (lower.includes("gpt-6-luna")) return MODEL_PRICING["gpt-6-luna"];
+  if (lower.includes("gpt-6")) return MODEL_PRICING["gpt-6-sol"];
   // gpt-5.6 tiers: sol/terra/luna carry reasoning-effort suffixes (solhigh,
   // etc.), so match by substring. Specific tiers precede the generic gpt-5.6
   // fallback (the public gpt-5.6 alias points to the flagship sol tier).

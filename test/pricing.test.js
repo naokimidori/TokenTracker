@@ -149,6 +149,31 @@ test("matcher: GPT-5.6 codex tiers resolve to their real curated rates (not the 
   }
 });
 
+test("matcher: GPT-6 codex tiers resolve to their real curated rates", () => {
+  const curated = require("../src/lib/pricing/curated-overrides.json");
+  const litellm = {};
+  const cases = [
+    ["gpt-6-astra", 10, 50, 1, 12.5, "curated:exact"],
+    ["gpt-6-sol", 2, 10, 0.2, 2.5, "curated:exact"],
+    ["gpt-6-luna", 0.1, 0.5, 0.01, 0.125, "curated:exact"],
+    // 思考程度后缀与变体
+    ["gpt-6-sol-high", 2, 10, 0.2, 2.5, null],
+    ["gpt-6-solhigh", 2, 10, 0.2, 2.5, "curated:fuzzy"],
+    ["gpt-6-lunahigh", 0.1, 0.5, 0.01, 0.125, "curated:fuzzy"],
+    // 公开简写别名默认映射到 Sol
+    ["gpt-6", 2, 10, 0.2, 2.5, "curated:fuzzy"],
+  ];
+  for (const [model, input, output, cache_read, cache_write, source] of cases) {
+    const r = matcher.lookupPricing(model, { curated, litellm, source: "codex" });
+    assert.equal(r.hit, true, `${model} should resolve`);
+    assert.equal(r.value.input, input, `${model} input`);
+    assert.equal(r.value.output, output, `${model} output`);
+    assert.equal(r.value.cache_read, cache_read, `${model} cache_read`);
+    assert.equal(r.value.cache_write, cache_write, `${model} cache_write`);
+    if (source) assert.equal(r.source, source, `${model} source`);
+  }
+});
+
 test("matcher: Kimi K3 aliases resolve to curated k3 rates (not the kimi-k2.5 fallback)", () => {
   const curated = require("../src/lib/pricing/curated-overrides.json");
   // LiteLLM has no k3 yet; simulate that so curated must win.
