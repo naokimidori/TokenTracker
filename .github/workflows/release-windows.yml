@@ -14,6 +14,11 @@ on:
         required: false
         type: boolean
         default: false
+      artifact_only:
+        description: "Build downloadable artifacts without a release"
+        required: false
+        type: boolean
+        default: false
   # Reusable: the macOS "release DMG" workflow calls this so a single dispatch
   # ships both platforms to the same vX.Y.Z release (see release-dmg.yml).
   workflow_call:
@@ -22,6 +27,10 @@ on:
         required: true
         type: string
       no_cache:
+        required: false
+        type: boolean
+        default: false
+      artifact_only:
         required: false
         type: boolean
         default: false
@@ -40,7 +49,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          ref: refs/tags/v${{ inputs.version }}
+          ref: ${{ inputs.artifact_only && github.sha || format('refs/tags/v{0}', inputs.version) }}
           # This job uploads assets via `gh` (GH_TOKEN), never authenticated git —
           # so don't persist the checkout token into local git config.
           persist-credentials: false
@@ -140,6 +149,12 @@ jobs:
           foreach ($f in $required) {
             if (-not (Test-Path $f)) { Write-Host "::error::missing required file: $f"; exit 1 }
           }
+          $webHash = (Get-FileHash dashboard/dist/index.html -Algorithm SHA256).Hash
+          $desktopHash = (Get-FileHash TokenTrackerWin/publish/EmbeddedServer/tokentracker/dashboard/dist/index.html -Algorithm SHA256).Hash
+          if ($webHash -ne $desktopHash) {
+            Write-Host "::error::Embedded dashboard differs from the web build"
+            exit 1
+          }
           Write-Host "All required files present."
 
       # 5. Package the publish folder into a portable zip release asset.
@@ -169,10 +184,22 @@ jobs:
           if (-not (Test-Path $setup)) { Write-Host "::error::installer not produced at $setup"; exit 1 }
           Write-Host "Installer built: $setup"
 
+      - name: Upload standalone build artifacts
+        if: ${{ inputs.artifact_only }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: TokenTracker-win-x64-v${{ inputs.version }}
+          path: |
+            TokenTracker-win-x64-v${{ inputs.version }}.zip
+            TokenTrackerWin/installer/Output/TokenTracker-Setup-v${{ inputs.version }}.exe
+          if-no-files-found: error
+          retention-days: 30
+
       # 7. Attach BOTH assets to the draft created by release-dmg.yml. Published
       # releases are immutable; a same-version rebuild must never replace assets
       # already being served to users.
       - name: Upload assets to existing draft release
+        if: ${{ !inputs.artifact_only }}
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
