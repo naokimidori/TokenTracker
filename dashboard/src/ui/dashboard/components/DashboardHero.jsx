@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Info, ArrowUp, ArrowDown, ChevronRight } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { copy } from "../../../lib/copy";
 import { formatUsdCurrency } from "../../../lib/format";
 import { AnimatedMetric } from "./AnimatedMetric.jsx";
@@ -35,6 +36,20 @@ const BASELINE_HOURLY_DATA = [
   { hour: "22:00", antigravity: 18.4, codex: 6.1, total: 24.5 },
   { hour: "23:00", antigravity: 6.2, codex: 1.8, total: 8.0 },
 ];
+const EMPTY_TREND_ROWS = [];
+
+function chartRowsMatchPeriod(rows, period, from, to) {
+  if (!Array.isArray(rows) || rows.length === 0) return false;
+  if (period === "day") {
+    return rows.some((row) => row?.hour && (!to || String(row.hour).slice(0, 10) === to));
+  }
+  if (period === "total") return rows.some((row) => row?.month);
+  if (period === "week" || period === "month") {
+    const days = rows.map((row) => row?.day).filter(Boolean).sort();
+    return days.length > 0 && (!from || days[0] === from) && (!to || days[days.length - 1] === to);
+  }
+  return true;
+}
 
 /**
  * 格式化 Token 简写辅助函数
@@ -47,6 +62,117 @@ function formatTokenMetric(val) {
   if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
   if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
   return String(num);
+}
+
+/**
+ * 规整化图表 Y 轴刻度及标签辅助函数
+ * 固定输出 4 个等距规整刻度，自适应 K / M / B 量纲，杜绝重复 0M
+ */
+function calculateChartScale(maxValM) {
+  if (!maxValM || maxValM <= 0) {
+    return {
+      chartMaxY: 12,
+      yTicks: ["12M", "8M", "4M", "0"],
+    };
+  }
+
+  // 预留约 12% 呼吸空间，避免最高柱紧贴图表顶部
+  const rawTarget = maxValM / 0.88;
+  const rawStep = rawTarget / 3;
+
+  const exponent = Math.floor(Math.log10(rawStep));
+  const magnitude = Math.pow(10, exponent);
+  const fraction = rawStep / magnitude;
+
+  // 选用工整阶梯 (1, 1.25, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10)
+  let niceFraction = 10;
+  const stepLadders = [1, 1.25, 1.5, 2, 2.5, 3, 4, 5, 6, 8];
+  for (const ladder of stepLadders) {
+    if (fraction <= ladder) {
+      niceFraction = ladder;
+      break;
+    }
+  }
+
+  let step = niceFraction * magnitude;
+  let maxY = step * 3;
+
+  // 确保规整后的 maxY 大于等于实际最大值（保留至少 5% 顶部间距）
+  while (maxY < maxValM * 1.05) {
+    step = Number((step * 1.2).toFixed(4));
+    maxY = step * 3;
+  }
+
+  // 格式化刻度标签函数，自适应量纲，杜绝重复 0M
+  function formatTick(val, max) {
+    if (val <= 0.0001) return "0";
+    if (max < 0.1) {
+      return `${Math.round(val * 1000)}K`;
+    }
+    if (max < 1) {
+      return `${val.toFixed(1).replace(/\.0$/, "")}M`;
+    }
+    const rounded = Math.round(val);
+    if (Math.abs(val - rounded) < 0.05) {
+      return `${rounded}M`;
+    }
+    return `${val.toFixed(1)}M`;
+  }
+
+  const rawTicks = [maxY, step * 2, step, 0];
+  const ticks = rawTicks.map((v) => formatTick(v, maxY));
+
+  // 防重兜底校验：若四舍五入后相邻刻度文本相同，增加 1 位精度消除重复
+  [0, 1, 2].forEach((idx) => {
+    if (ticks[idx] === ticks[idx + 1]) {
+      ticks[idx] = `${rawTicks[idx].toFixed(1)}M`;
+    }
+  });
+
+  return { chartMaxY: maxY, yTicks: ticks };
+}
+
+/**
+ * 为日统计视图生成整齐的 X 轴刻度标签
+ * 确保起始刻度精确对齐最早产生活动的时间（首根柱子），末尾刻度对齐最后一根柱子，
+ * 中间均匀分布整齐的整点时间（例如间隔 2 / 3 / 4 小时），总数保持在 4 ~ 6 个。
+ */
+function generateHourlyTicks(hourlyList) {
+  if (!Array.isArray(hourlyList) || hourlyList.length === 0) return [];
+  const len = hourlyList.length;
+  // 6 根或以下柱子时，刻度直接对应每根柱子，整齐清晰
+  if (len <= 6) {
+    return hourlyList.map((d) => d.hour);
+  }
+
+  // 目标采样步长：根据剩余小时数自适应选择 2、3 或 4 小时
+  let step = 4;
+  if (len <= 10) step = 2;
+  else if (len <= 16) step = 3;
+  else step = 4;
+
+  const tickIndices = [0];
+  const middleIndices = Array.from({ length: len - 2 }, (_, i) => i + 1);
+  for (const i of middleIndices) {
+    const hourNum = parseInt(hourlyList[i].hour, 10);
+    if (!Number.isNaN(hourNum) && hourNum % step === 0) {
+      const lastIdx = tickIndices[tickIndices.length - 1];
+      if (i - lastIdx >= Math.max(2, step - 1) && len - 1 - i >= 1) {
+        tickIndices.push(i);
+      }
+    }
+  }
+
+  const lastTickIdx = tickIndices[tickIndices.length - 1];
+  if (lastTickIdx !== len - 1) {
+    if (len - 1 - lastTickIdx <= 1 && tickIndices.length > 2) {
+      tickIndices[tickIndices.length - 1] = len - 1;
+    } else {
+      tickIndices.push(len - 1);
+    }
+  }
+
+  return tickIndices.map((idx) => hourlyList[idx].hour);
 }
 
 /**
@@ -123,7 +249,8 @@ export function DashboardHero({
   summaryTotalTokensRaw,
   summaryCostValue,
   onCostInfo,
-  trendRows = [],
+  trendRows = EMPTY_TREND_ROWS,
+  chartLoading = false,
   fleetData = [],
   topModels = [],
   allModels = [],
@@ -140,6 +267,7 @@ export function DashboardHero({
 }) {
   // 当前柱图悬停选中项（生产模式下默认不常驻，仅在 hover 或触屏点击时激活）
   const [hoveredIndex, setHoveredIndex] = useState(screenshotMode ? 22 : null);
+  const prefersReducedMotion = useReducedMotion();
 
   // 全量模型详情弹窗显隐状态与数据源
   const [isModelModalOpen, setIsModelModalOpen] = useState(false);
@@ -176,7 +304,7 @@ export function DashboardHero({
     }
 
     if (Array.isArray(trendRows) && trendRows.length > 0) {
-      return trendRows.map((r, i) => {
+      const mappedRows = trendRows.map((r, i) => {
         const totalRaw = Number(r.total_tokens ?? r.total ?? 0);
         const mTotal = Number(((totalRaw / 1000000) || 0).toFixed(2));
         const rawDate = r.month || r.day || r.hour_start || r.hour || r.label || "";
@@ -279,11 +407,49 @@ export function DashboardHero({
           fullDateLabel,
           total: mTotal,
           rawTotal: totalRaw,
+          future: r.future,
           segments,
           antigravity: Number(((agTokens / 1000000) || 0).toFixed(2)),
           codex: Number(((codexTokens / 1000000) || 0).toFixed(2)),
         };
       });
+
+      if (period === "day") {
+        // 1. 查找当天所有产生活动（Token 消耗 > 0）的小时索引
+        const activeIndices = mappedRows
+          .map((item, idx) => (item.total > 0 || item.rawTotal > 0 ? idx : -1))
+          .filter((idx) => idx !== -1);
+        const firstActiveIdx = activeIndices.length > 0 ? activeIndices[0] : -1;
+        const lastActiveIdx = activeIndices.length > 0 ? activeIndices[activeIndices.length - 1] : -1;
+
+        // 2. 左侧起始：首次活动时间再往前推 1 小时（预留 1 小时呼吸缓冲）
+        let startIdx = 0;
+        if (firstActiveIdx > 0) {
+          startIdx = Math.max(0, firstActiveIdx - 1);
+        }
+
+        // 3. 右侧截止：空余 2 个小时的刻度，直到今日结束（最多至 23:00）
+        const elapsedIndices = mappedRows
+          .map((item, idx) => (item.future === false ? idx : -1))
+          .filter((idx) => idx !== -1);
+        const lastElapsedIdx = elapsedIndices.length > 0 ? elapsedIndices[elapsedIndices.length - 1] : -1;
+
+        let baseHour = -1;
+        if (lastElapsedIdx !== -1) {
+          baseHour = Math.max(lastElapsedIdx, lastActiveIdx);
+        } else if (lastActiveIdx !== -1) {
+          baseHour = lastActiveIdx;
+        } else {
+          baseHour = new Date().getHours();
+        }
+
+        const targetEndHour = Math.min(mappedRows.length - 1, Math.min(23, baseHour + 2));
+        const endIdx = Math.max(startIdx, targetEndHour);
+
+        return mappedRows.slice(startIdx, endIdx + 1);
+      }
+
+      return mappedRows;
     }
 
     // 若无数据，生成对应周期的 0 值骨架柱，保持网格结构平稳
@@ -300,32 +466,18 @@ export function DashboardHero({
     }));
   }, [trendRows, screenshotMode, period]);
 
-  // 柱图整体最大值计算（统一缩放刻度）
+  // 柱图整体最大值计算（统一缩放刻度，单位：M）
   const maxBarValue = useMemo(() => {
     if (hourlyData.length === 0) return 0;
     const maxVal = Math.max(...hourlyData.map((d) => d.total));
     return maxVal > 0 ? maxVal : 0;
   }, [hourlyData]);
 
-  // 最高柱占绘图区 90%，顶部保留 10% 呼吸空间。
-  const chartMaxY = useMemo(() => {
-    if (maxBarValue === 0) return 10;
-    return maxBarValue / 0.9;
-  }, [maxBarValue]);
-
-  // Y 轴刻度标签
-  const yTicks = useMemo(() => {
-    const step = chartMaxY / 3;
-    return [
-      `${chartMaxY.toFixed(0)}M`,
-      `${(step * 2).toFixed(0)}M`,
-      `${step.toFixed(0)}M`,
-      "0",
-    ];
-  }, [chartMaxY]);
-
-  // 获取当前活跃 tooltip 显示项
-  const activeItem = hoveredIndex != null ? hourlyData[hoveredIndex] : null;
+  // 计算规整化 Y 轴最大值与 4 个等距刻度标签
+  const { chartMaxY, yTicks } = useMemo(
+    () => calculateChartScale(maxBarValue),
+    [maxBarValue],
+  );
 
   // 供应商占比数据处理（生产模式完全基于真实 fleetData 动态计算）
   const providerStats = useMemo(() => {
@@ -532,7 +684,7 @@ export function DashboardHero({
   // X 轴刻度标注（跟随当前数据粒度）
   const xTicks = useMemo(() => {
     if (period === "day") {
-      return ["00:00", "04:00", "08:00", "12:00", "16:00", "20:00"];
+      return generateHourlyTicks(hourlyData);
     }
     if (period === "week") {
       // 周视图（近 7 日）：提取近 7 日对应的真实 MM.DD 日期
@@ -574,6 +726,48 @@ export function DashboardHero({
     }
     return [];
   }, [period, hourlyData]);
+
+  // Keep the previous chart intact while the next grain loads. Otherwise a
+  // period switch briefly renders old rows under a new axis (or an empty
+  // skeleton), and CSS height transitions cannot connect the two charts.
+  const [chartSnapshot, setChartSnapshot] = useState(() => ({
+    period, data: hourlyData, xTicks, yTicks, chartMaxY, title: trendTitle,
+  }));
+  const pendingChartRef = useRef(null);
+  useEffect(() => {
+    const next = { period, data: hourlyData, xTicks, yTicks, chartMaxY, title: trendTitle };
+    if (period !== chartSnapshot.period) {
+      if (pendingChartRef.current?.period !== period) {
+        pendingChartRef.current = { period, sawLoading: false };
+      }
+      if (chartLoading) pendingChartRef.current.sawLoading = true;
+      const ready = screenshotMode || chartRowsMatchPeriod(trendRows, period, usageFrom, usageTo);
+      if (!chartLoading && (ready || pendingChartRef.current.sawLoading)) {
+        pendingChartRef.current = null;
+        setChartSnapshot(next);
+      }
+      return;
+    }
+    pendingChartRef.current = null;
+    if (!chartLoading) {
+      setChartSnapshot((previous) =>
+        previous.data === hourlyData && previous.chartMaxY === chartMaxY && previous.title === trendTitle
+          ? previous
+          : next,
+      );
+    }
+  }, [chartLoading, chartMaxY, chartSnapshot.period, hourlyData, period, screenshotMode,
+    trendRows, trendTitle, usageFrom, usageTo, xTicks, yTicks]);
+
+  useEffect(() => {
+    if (!screenshotMode) setHoveredIndex(null);
+  }, [chartSnapshot.period, screenshotMode]);
+
+  const visibleData = chartSnapshot.data;
+  const visibleXTicks = chartSnapshot.xTicks;
+  const visibleYTicks = chartSnapshot.yTicks;
+  const visibleMaxY = chartSnapshot.chartMaxY;
+  const activeItem = hoveredIndex != null ? visibleData[hoveredIndex] : null;
 
   // 规范化总量和金额的展示值
   const displaySummaryValue = screenshotMode
@@ -799,7 +993,7 @@ export function DashboardHero({
           {/* 柱图顶部栏：标题与图例 */}
           <div className="flex items-center justify-between gap-2 mb-3">
             <h2 className="text-[14px] font-semibold text-[var(--v3-text-primary)]">
-              {trendTitle}
+              {chartSnapshot.title}
             </h2>
             <div className="flex items-center gap-3 text-[11px] font-medium tracking-wide">
               {showTopProvidersLegend ? (
@@ -823,12 +1017,24 @@ export function DashboardHero({
           </div>
 
           {/* 柱图展示区与网格线 */}
-          <div className="relative flex-1 min-h-[145px] flex flex-col">
+          <div className="relative flex-1 min-h-[145px]">
+            <AnimatePresence initial={false}>
+              <motion.div
+                key={chartSnapshot.period}
+                data-testid="hero-chart-scene"
+                className="absolute inset-0 flex flex-col"
+                initial={prefersReducedMotion ? false : { opacity: 0, y: 7 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -5 }}
+                transition={prefersReducedMotion
+                  ? { duration: 0 }
+                  : { duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+              >
             <div className="relative flex-1 min-h-[125px] flex">
-              {/* 左侧 Y 轴刻度：与柱体绘图区等高 */}
-              <div className="flex flex-col justify-between text-[11px] text-[var(--v3-text-secondary)] pr-2 v3-mono-num select-none w-8 text-right py-1">
-                {yTicks.map((yt) => (
-                  <span key={yt}>{yt}</span>
+              {/* 左侧 Y 轴刻度：与柱体绘图区等高，固定 4 个刻度，避免溢出与重复 key */}
+              <div className="h-full shrink-0 flex flex-col justify-between text-[11px] text-[var(--v3-text-secondary)] pr-2.5 v3-mono-num select-none min-w-[36px] text-right py-0.5 pointer-events-none overflow-hidden">
+                {visibleYTicks.map((yt, idx) => (
+                  <span key={`${yt}-${idx}`} className="leading-none">{yt}</span>
                 ))}
               </div>
 
@@ -844,10 +1050,10 @@ export function DashboardHero({
 
               {/* 柱子列表：平滑增减与过渡 */}
               <div className="absolute inset-0 flex items-end justify-between gap-[2px] lg:gap-[3px]">
-                {hourlyData.map((item, idx) => {
+                {visibleData.map((item, idx) => {
                   const isHovered = hoveredIndex === idx;
-                  const totalHeightPct = chartMaxY > 0
-                    ? Math.min(100, Math.max(0, (item.total / chartMaxY) * 100))
+                  const totalHeightPct = visibleMaxY > 0
+                    ? Math.min(100, Math.max(0, (item.total / visibleMaxY) * 100))
                     : 0;
 
                   const ariaLabel = `${item.hour} 用量 ${item.total > 0 ? `${item.total}M` : "0"}`;
@@ -873,11 +1079,20 @@ export function DashboardHero({
 
                       {/* 柱体组合：支持提供商分段堆叠与平滑缓动 */}
                       <div
-                        className={`w-full max-w-[14px] rounded-t-xs overflow-hidden flex flex-col-reverse justify-start transition-all duration-300 ease-out ${
+                        className={`w-full max-w-[14px] rounded-t-xs overflow-hidden transition-[height,opacity,transform] duration-300 ease-out ${
                           isHovered ? "opacity-100 scale-x-110" : "opacity-90 group-hover:opacity-100"
                         }`}
                         style={{ height: `${item.total > 0 || screenshotMode ? Math.max(totalHeightPct, 2) : 2}%` }}
                       >
+                        <motion.div
+                          className="flex h-full w-full flex-col-reverse justify-start"
+                          style={{ transformOrigin: "bottom center" }}
+                          initial={prefersReducedMotion ? false : { scaleY: 0.55, opacity: 0.45 }}
+                          animate={{ scaleY: 1, opacity: 1 }}
+                          transition={prefersReducedMotion
+                            ? { duration: 0 }
+                            : { duration: 0.38, delay: Math.min(idx * 0.012, 0.12), ease: [0.22, 1, 0.36, 1] }}
+                        >
                         {hasSegments ? (
                           item.segments.map((seg, sIdx) => (
                             <div
@@ -893,6 +1108,7 @@ export function DashboardHero({
                             }`}
                           />
                         )}
+                        </motion.div>
                       </div>
                     </div>
                   );
@@ -904,7 +1120,7 @@ export function DashboardHero({
                     className="absolute z-20 pointer-events-none bg-[var(--v3-bg-elevated)] text-[var(--v3-text-primary)] border border-[var(--v3-border)] rounded-lg px-2.5 py-1.5 shadow-xl text-[11px] whitespace-nowrap transition-all duration-150 animate-fade-in"
                     style={{
                       left: `${Math.min(
-                        Math.max((hoveredIndex / Math.max(1, hourlyData.length - 1)) * 100, 15),
+                        Math.max((hoveredIndex / Math.max(1, visibleData.length - 1)) * 100, 15),
                         85
                       )}%`,
                       top: "2px",
@@ -945,12 +1161,14 @@ export function DashboardHero({
             {/* X 轴时间/日期刻度标注 */}
             <div
               data-testid="hero-x-ticks"
-              className={`ml-8 flex ${xTicks.length === 1 ? "justify-center" : "justify-between"} text-[11px] text-[var(--v3-text-secondary)] pt-1.5 v3-mono-num select-none`}
+              className={`ml-8 flex ${visibleXTicks.length === 1 ? "justify-center" : "justify-between"} text-[11px] text-[var(--v3-text-secondary)] pt-1.5 v3-mono-num select-none`}
             >
-              {xTicks.map((xt, i) => (
+              {visibleXTicks.map((xt, i) => (
                 <span key={`${xt}-${i}`}>{xt}</span>
               ))}
             </div>
+              </motion.div>
+            </AnimatePresence>
           </div>
         </div>
 

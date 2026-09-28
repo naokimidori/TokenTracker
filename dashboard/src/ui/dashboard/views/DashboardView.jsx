@@ -29,6 +29,7 @@ export function DashboardView(props) {
     allModels,
     activeDays,
     trendRowsForDisplay,
+    chartLoading,
     refreshAll,
     usageLoadingState,
     providersLoading,
@@ -71,6 +72,7 @@ export function DashboardView(props) {
               summaryCostValue={summaryCostValue}
               onCostInfo={openCostModal}
               trendRows={trendRowsForDisplay}
+              chartLoading={chartLoading}
               fleetData={fleetData}
               topModels={topModels}
               allModels={allModels}

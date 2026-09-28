@@ -1385,6 +1385,7 @@ export function DashboardPage({
       linkCodeLoading={linkCodeLoading}
       linkCodeError={linkCodeError}
       trendRowsForDisplay={trendRowsForDisplay}
+      chartLoading={trendLoading || (useDailyTrend && usageLoading)}
       trendFromForDisplay={trendFromForDisplay}
       trendToForDisplay={trendToForDisplay}
       trendZoomConfig={trendZoomConfig}
