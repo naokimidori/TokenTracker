@@ -204,6 +204,29 @@ test("cold filtering distinguishes discovered rollouts, cursor keys, parse candi
   assert.ok(diagnostics.cold_skipped <= diagnostics.discovered_rollouts);
 });
 
+test("automatic Codex sync revisits a session started six days earlier", async () => {
+  const resumedPath = path.join(
+    "/tmp", ".codex", "sessions", "2026", "09", "22",
+    "rollout-2026-09-22T23-24-23-resumed.jsonl",
+  );
+  const entry = { path: resumedPath, source: "codex" };
+  let skipChecks = 0;
+  const filtered = await filterColdCodexRolloutFiles({
+    rolloutFiles: [entry],
+    cursors: { version: 1, files: {}, codexDayInventoryCache: { version: 1, days: {} } },
+    codexCursorStore: {
+      fileCount: 1,
+      async canSkipCodexDay() { skipChecks += 1; return true; },
+      async loadCodexFilesForPaths() { return { restarted: false }; },
+    },
+    nowMs: Date.UTC(2026, 8, 28, 2, 0, 0),
+  });
+
+  assert.deepEqual(filtered.rolloutFiles, [entry]);
+  assert.equal(filtered.skipped, 0);
+  assert.equal(skipChecks, 0, "recent resumed sessions must not take the cold-day shortcut");
+});
+
 test("v2 cold filtering batches shard decisions and loads by day directory", async () => {
   const oldDir = path.join("/tmp", ".codex", "sessions", "2029", "01", "01");
   const activeDir = path.join("/tmp", ".codex", "sessions", "2030", "06", "02");

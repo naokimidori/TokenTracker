@@ -40,7 +40,10 @@ const CLAUDE_MEM_OBSERVER_PATH_SEGMENT = "--claude-mem-observer-sessions";
 const CLAUDE_MEM_OBSERVER_PROJECT_REF =
   "https://local.tokentracker/claude-mem/observer-sessions";
 const PROJECT_ABSENT_CONTEXT_RESCAN_MS = 24 * 60 * 60 * 1000;
-const DEFAULT_CODEX_COLD_SKIP_RECENT_DAYS = 2;
+// Codex Desktop can keep appending to a session created days earlier. The
+// rollout's date directory does not change when its file grows, so a two-day
+// hot window silently misses resumed sessions until the next full audit.
+const DEFAULT_CODEX_COLD_SKIP_RECENT_DAYS = 30;
 const FILE_METADATA_CONCURRENCY = 32;
 
 async function mapConcurrent(items, concurrency, mapper) {
