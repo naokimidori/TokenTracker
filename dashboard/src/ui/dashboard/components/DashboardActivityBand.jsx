@@ -1,8 +1,16 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { ChevronRight, ChevronLeft } from "lucide-react";
+import { useReducedMotion } from "motion/react";
 import { copy } from "../../../lib/copy";
 import { generate2026BaselineHeatmap } from "./activity-baseline-utils.js";
 import { ProviderIcon } from "./ProviderIcon.jsx";
+
+const ACTIVE_TOOL_VISIBLE_ICONS = 3;
+const ACTIVE_TOOL_ICON_SIZE = 20;
+const ACTIVE_TOOL_ICON_OVERLAP = 6;
+const ACTIVE_TOOL_ICON_STEP = ACTIVE_TOOL_ICON_SIZE - ACTIVE_TOOL_ICON_OVERLAP;
+const ACTIVE_TOOL_AUTOPLAY_MS = 3000;
+const ACTIVE_TOOL_TRANSITION_MS = 560;
 
 /**
  * 格式化 Token 辅助函数
@@ -15,6 +23,88 @@ function formatTokenVal(val) {
   if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
   if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
   return String(num);
+}
+
+/**
+ * 固定显示最多三个图标；超过三个时每三秒循环左移一个图标位。
+ * 尾部复制前三项，使最后一格可以无缝过渡回开头。
+ */
+function ActiveToolIconCarousel({ tools }) {
+  const prefersReducedMotion = useReducedMotion();
+  const [slideIndex, setSlideIndex] = useState(0);
+  const [animateSlide, setAnimateSlide] = useState(false);
+  const [paused, setPaused] = useState(false);
+  const toolCount = tools.length;
+  const hasOverflow = toolCount > ACTIVE_TOOL_VISIBLE_ICONS;
+  const visibleCount = Math.min(toolCount, ACTIVE_TOOL_VISIBLE_ICONS);
+
+  useEffect(() => {
+    setSlideIndex(0);
+    setAnimateSlide(false);
+  }, [toolCount]);
+
+  useEffect(() => {
+    if (!hasOverflow || prefersReducedMotion || paused) return undefined;
+
+    const intervalId = window.setInterval(() => {
+      setAnimateSlide(true);
+      setSlideIndex((current) => Math.min(current + 1, toolCount));
+    }, ACTIVE_TOOL_AUTOPLAY_MS);
+
+    return () => window.clearInterval(intervalId);
+  }, [hasOverflow, paused, prefersReducedMotion, toolCount]);
+
+  if (toolCount === 0) {
+    return (
+      <div className="w-5 h-5 rounded-full bg-[var(--v3-bg-surface)] flex items-center justify-center border border-[var(--v3-border)] text-[10px] text-[var(--v3-text-secondary)]">
+        {"—"}
+      </div>
+    );
+  }
+
+  const renderedTools = hasOverflow
+    ? [...tools, ...tools.slice(0, ACTIVE_TOOL_VISIBLE_ICONS)]
+    : tools;
+  const viewportWidth = ACTIVE_TOOL_ICON_SIZE + (visibleCount - 1) * ACTIVE_TOOL_ICON_STEP;
+
+  return (
+    <div
+      data-testid="active-tools-icon-carousel"
+      className="shrink-0 overflow-hidden"
+      style={{ width: `${viewportWidth}px` }}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      aria-hidden="true"
+    >
+      <div
+        data-testid="active-tools-icon-track"
+        data-slide-index={slideIndex}
+        className="flex items-center -space-x-1.5 will-change-transform"
+        style={{
+          transform: `translate3d(-${slideIndex * ACTIVE_TOOL_ICON_STEP}px, 0, 0)`,
+          transition: animateSlide
+            ? `transform ${ACTIVE_TOOL_TRANSITION_MS}ms cubic-bezier(0.22, 1, 0.36, 1)`
+            : "none",
+        }}
+        onTransitionEnd={(event) => {
+          if (event.target !== event.currentTarget || slideIndex < toolCount) return;
+          setAnimateSlide(false);
+          setSlideIndex(0);
+        }}
+      >
+        {renderedTools.map((tool, index) => (
+          <div
+            key={`${tool.source || tool.name || "tool"}-${index}`}
+            data-testid="active-tools-icon"
+            className="w-5 h-5 rounded-full bg-[var(--v3-bg-surface)] flex items-center justify-center border border-[var(--v3-border)] overflow-hidden shadow-xs shrink-0"
+            title={tool.name}
+          >
+            <ProviderIcon provider={tool.source} size={12} className="shrink-0" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 /**
@@ -176,7 +266,7 @@ export function DashboardActivityBand({
     }
 
     if (Array.isArray(fleetData) && fleetData.length > 0) {
-      return fleetData.slice(0, 3).map((item, idx) => {
+      return fleetData.map((item, idx) => {
         const source = item.source || item.label || "unknown";
         const name = (item.label || item.source || "UNKNOWN").toUpperCase();
         const usage = formatTokenVal(item.usage ?? item.totalTokens);
@@ -249,24 +339,8 @@ export function DashboardActivityBand({
               {topActiveToolsText}
             </span>
 
-            {/* 叠放头像组：真实活跃工具 Logo */}
-            <div className="flex items-center -space-x-1.5">
-              {activeToolsData.length > 0 ? (
-                activeToolsData.slice(0, 3).map((tool, tIdx) => (
-                  <div
-                    key={tool.source || tIdx}
-                    className="w-5 h-5 rounded-full bg-[var(--v3-bg-surface)] flex items-center justify-center border border-[var(--v3-border)] overflow-hidden shadow-xs shrink-0"
-                    title={tool.name}
-                  >
-                    <ProviderIcon provider={tool.source} size={12} className="shrink-0" />
-                  </div>
-                ))
-              ) : (
-                <div className="w-5 h-5 rounded-full bg-[var(--v3-bg-surface)] flex items-center justify-center border border-[var(--v3-border)] text-[10px] text-[var(--v3-text-secondary)]">
-                  {"—"}
-                </div>
-              )}
-            </div>
+            {/* 叠放头像组：超过三个时自动循环左移 */}
+            <ActiveToolIconCarousel tools={activeToolsData} />
 
             <div className="w-5 h-5 rounded-full bg-[var(--v3-bg-surface)] flex items-center justify-center text-[var(--v3-text-secondary)]">
               {toolsOpen ? (
